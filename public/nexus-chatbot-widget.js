@@ -121,11 +121,17 @@
                 
                 .nexus-chat-toggle.open {
                     background: #ff6b6b;
+                    opacity: 0;
+                    visibility: hidden;
+                    transform: scale(0.8);
+                    pointer-events: none;
                 }
                 
                 .nexus-chatbot-container {
-                    width: 380px;
+                    width: 450px;
+                    max-width: calc(100vw - 40px);
                     height: 500px;
+                    max-height: calc(100vh - 80px);
                     background: white;
                     border-radius: 16px;
                     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
@@ -137,7 +143,8 @@
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     overflow: hidden;
                     position: absolute;
-                    bottom: 80px;
+                    bottom: 0px;
+                    right: 0;
                 }
                 
                 .nexus-chatbot-container.open {
@@ -391,14 +398,21 @@
                     right: 20px;
                 }
                 
+                .nexus-chatbot-widget.bottom-right .nexus-chatbot-container {
+                    bottom: 0px;
+                    right: 0;
+                    left: auto;
+                }
+                
                 .nexus-chatbot-widget.bottom-left {
                     bottom: 20px;
                     left: 20px;
                 }
                 
                 .nexus-chatbot-widget.bottom-left .nexus-chatbot-container {
-                    bottom: 80px;
+                    bottom: 0px;
                     left: 0;
+                    right: auto;
                 }
                 
                 .nexus-chatbot-widget.top-right {
@@ -409,6 +423,8 @@
                 .nexus-chatbot-widget.top-right .nexus-chatbot-container {
                     top: 80px;
                     bottom: auto;
+                    right: 0;
+                    left: auto;
                 }
                 
                 .nexus-chatbot-widget.top-left {
@@ -425,11 +441,16 @@
                 /* Mobile responsiveness */
                 @media (max-width: 768px) {
                     .nexus-chatbot-container {
-                        width: calc(100vw - 20px);
-                        height: calc(100vh - 120px);
-                        bottom: 80px;
-                        left: 10px;
-                        right: 10px;
+                        width: calc(100vw - 40px);
+                        height: calc(100vh - 80px);
+                        bottom: 0px;
+                        left: 50%;
+                        right: auto;
+                        transform: translateX(-50%) translateY(100%) scale(0.8);
+                    }
+                    
+                    .nexus-chatbot-container.open {
+                        transform: translateX(-50%) translateY(0) scale(1);
                     }
                     
                     .nexus-chatbot-widget {
@@ -485,8 +506,48 @@
             this.inputTextarea = inputArea.querySelector('textarea');
             this.sendBtn = inputArea.querySelector('.nexus-send-btn');
             
+            // Ensure proper positioning within viewport
+            this.adjustPosition();
+            
             // Render initial messages
             this.renderMessages();
+        }
+
+        adjustPosition() {
+            // Ensure the widget doesn't overflow the viewport
+            const rect = this.container.getBoundingClientRect();
+            const chatRect = this.chatContainer.getBoundingClientRect();
+            
+            // Check if chat container would overflow on the right
+            if (this.config.position.includes('right')) {
+                const rightOverflow = (rect.right + 450) > window.innerWidth;
+                if (rightOverflow) {
+                    // Adjust the container position to prevent overflow
+                    this.chatContainer.style.right = '0px';
+                    this.chatContainer.style.left = 'auto';
+                    
+                    // If still overflowing, make it smaller
+                    const availableWidth = window.innerWidth - rect.left - 40;
+                    if (availableWidth < 450) {
+                        this.chatContainer.style.width = `${Math.max(300, availableWidth)}px`;
+                    }
+                }
+            }
+            
+            // Check if chat container would overflow on the left
+            if (this.config.position.includes('left')) {
+                const leftOverflow = (rect.left - 450) < 0;
+                if (leftOverflow) {
+                    this.chatContainer.style.left = '0px';
+                    this.chatContainer.style.right = 'auto';
+                    
+                    // If still overflowing, make it smaller
+                    const availableWidth = window.innerWidth - rect.right - 40;
+                    if (availableWidth < 450) {
+                        this.chatContainer.style.width = `${Math.max(300, availableWidth)}px`;
+                    }
+                }
+            }
         }
 
         createHeader() {
@@ -545,6 +606,11 @@
             this.inputTextarea.addEventListener('input', () => {
                 this.inputTextarea.style.height = 'auto';
                 this.inputTextarea.style.height = this.inputTextarea.scrollHeight + 'px';
+            });
+            
+            // Window resize event to adjust position
+            window.addEventListener('resize', () => {
+                this.adjustPosition();
             });
         }
 

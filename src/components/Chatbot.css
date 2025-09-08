@@ -25,14 +25,20 @@
 
 .chat-toggle.open {
   background: #ff6b6b;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.8);
+  pointer-events: none;
 }
 
 .chatbot-container {
   position: fixed;
-  bottom: 100px;
+  bottom: 20px;
   right: 20px;
-  width: 380px;
+  width: 450px;
+  max-width: calc(100vw - 40px);
   height: 500px;
+  max-height: calc(100vh - 80px);
   background: white;
   border-radius: 16px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
