@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - nexus-chatbot-widget
+name: Build and deploy Node.js app to Azure Web App - nsx-widget
 
 on:
   push:
@@ -58,4 +58,4 @@ jobs:
           app-name: 'YOUR_ACTUAL_APP_SERVICE_NAME'  # Replace with your App Service name
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_WIDGET }}  # You'll need to set this secret
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_NSX_WIDGET }}  # You'll need to set this secret
