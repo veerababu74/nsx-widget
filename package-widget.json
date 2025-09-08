@@ -1,0 +1,30 @@
+{
+  "name": "nexus-chatbot-widget",
+  "version": "1.0.0",
+  "description": "Universal chatbot widget for any website",
+  "main": "dist/nexus-chatbot-widget.min.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build-widget": "node scripts/build-widget.js",
+    "preview": "vite preview",
+    "demo": "vite preview --open /integration-demo.html"
+  },
+  "files": [
+    "dist/",
+    "public/nexus-chatbot-widget.js",
+    "README.md"
+  ],
+  "keywords": [
+    "chatbot",
+    "widget",
+    "ai",
+    "customer-support",
+    "integration",
+    "javascript"
+  ],
+  "devDependencies": {
+    "terser": "^5.24.0",
+    "fs-extra": "^11.1.1"
+  }
+}

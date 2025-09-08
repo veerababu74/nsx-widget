@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Website - Nexus Chatbot Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .feature {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 Welcome to Our Test Website</h1>
+            <p>This is a demo website showing the Nexus Chatbot integration</p>
+        </div>
+        
+        <div class="feature">
+            <h3>🤖 AI-Powered Customer Support</h3>
+            <p>Our chatbot provides 24/7 customer support using advanced AI technology. Notice the chat button in the bottom right corner - that's the Nexus Chatbot widget in action!</p>
+        </div>
+        
+        <div class="feature">
+            <h3>📱 Mobile-Friendly Design</h3>
+            <p>The chatbot automatically adapts to any screen size, providing a seamless experience on desktop, tablet, and mobile devices.</p>
+        </div>
+        
+        <div class="feature">
+            <h3>⚡ Lightning Fast</h3>
+            <p>Lightweight and optimized for performance, the chatbot loads quickly without affecting your website's speed.</p>
+        </div>
+        
+        <div class="cta">
+            <h2>Try the Chatbot Now!</h2>
+            <p>Click the chat button in the bottom right corner to start a conversation with our AI assistant.</p>
+            <p><strong>This is exactly how it would appear on your website!</strong></p>
+        </div>
+        
+        <div class="feature">
+            <h3>🔧 Easy Integration</h3>
+            <p>Adding this chatbot to your website requires just 2-3 lines of code. No complex setup, no dependencies, just copy and paste.</p>
+        </div>
+        
+        <div class="feature">
+            <h3>🎨 Fully Customizable</h3>
+            <p>Change colors, position, messages, and behavior to match your brand and requirements.</p>
+        </div>
+        
+        <div class="footer">
+            <p>This demo shows how the Nexus Chatbot widget integrates seamlessly into any website.</p>
+            <p>The widget is completely self-contained and won't interfere with your existing code.</p>
+        </div>
+    </div>
+
+    <!-- Nexus Chatbot Widget Integration - START -->
+    <script>
+        // Configure the chatbot
+        window.nexusChatbotConfig = {
+            position: 'bottom-right',
+            theme: 'default',
+            autoOpen: false,
+            welcomeMessage: "👋 Hello! I'm the Nexus AI assistant. I can help answer questions about our services, provide support, or just have a conversation. What would you like to know?",
+            sessionId: 'demo-session-' + Date.now(),
+            indexName: 'veera'
+        };
+    </script>
+    <!-- Load the chatbot widget -->
+    <script src="nexus-chatbot-widget.js"></script>
+    <!-- Nexus Chatbot Widget Integration - END -->
+    
+    <!-- Demo Enhancement: Add some analytics tracking -->
+    <script>
+        // Optional: Track chatbot interactions
+        window.addEventListener('load', function() {
+            // Track when chatbot loads
+            console.log('✅ Nexus Chatbot loaded successfully');
+            
+            // You can add analytics tracking here
+            setTimeout(function() {
+                if (window.NexusChatbot && window.NexusChatbot.widget) {
+                    console.log('🤖 Chatbot widget ready for interaction');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

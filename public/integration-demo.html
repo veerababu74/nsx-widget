@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Chatbot - Simple Integration Example</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .demo-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .instructions {
+            background: #e8f4fd;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>🤖 Nexus Chatbot Widget Demo</h1>
+        
+        <p>This page demonstrates how to integrate the Nexus Chatbot widget into any website. The chatbot is already active on this page - look for the chat button in the bottom right corner!</p>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>✨ Easy Integration</h3>
+                <p>Just add one script tag to your website</p>
+            </div>
+            <div class="feature-card">
+                <h3>📱 Mobile Responsive</h3>
+                <p>Works perfectly on all devices</p>
+            </div>
+            <div class="feature-card">
+                <h3>🎨 Customizable</h3>
+                <p>Multiple themes and positions</p>
+            </div>
+            <div class="feature-card">
+                <h3>🚀 Performance</h3>
+                <p>Lightweight and fast loading</p>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>Demo Controls</h3>
+            <p>Try these buttons to test the chatbot programmatically:</p>
+            <button class="demo-button" onclick="openChat()">Open Chat</button>
+            <button class="demo-button" onclick="closeChat()">Close Chat</button>
+            <button class="demo-button" onclick="sendTestMessage()">Send Test Message</button>
+            <button class="demo-button" onclick="changeToBotLeft()">Move to Bottom Left</button>
+        </div>
+        
+        <h2>📋 Integration Instructions</h2>
+        
+        <h3>Method 1: Simple Script Tag (Recommended)</h3>
+        <div class="code-block">
+            <code>
+&lt;!-- Add this before closing &lt;/body&gt; tag --&gt;<br>
+&lt;script&gt;<br>
+&nbsp;&nbsp;// Optional: Configure the chatbot before loading<br>
+&nbsp;&nbsp;window.nexusChatbotConfig = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left<br>
+&nbsp;&nbsp;&nbsp;&nbsp;theme: 'default',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;autoOpen: false,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;welcomeMessage: "Hello! How can I help you today?"<br>
+&nbsp;&nbsp;};<br>
+&lt;/script&gt;<br>
+&lt;script src="https://your-domain.com/nexus-chatbot-widget.js"&gt;&lt;/script&gt;
+            </code>
+        </div>
+        
+        <h3>Method 2: Manual Initialization</h3>
+        <div class="code-block">
+            <code>
+&lt;script src="https://your-domain.com/nexus-chatbot-widget.js"&gt;&lt;/script&gt;<br>
+&lt;script&gt;<br>
+&nbsp;&nbsp;// Initialize manually with custom config<br>
+&nbsp;&nbsp;const chatbot = NexusChatbot.start({<br>
+&nbsp;&nbsp;&nbsp;&nbsp;position: 'bottom-left',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;autoOpen: true,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;apiBaseUrl: 'https://your-custom-api.com'<br>
+&nbsp;&nbsp;});<br>
+&lt;/script&gt;
+            </code>
+        </div>
+        
+        <h3>Method 3: WordPress Integration</h3>
+        <div class="code-block">
+            <code>
+// Add to your theme's functions.php<br>
+function add_nexus_chatbot() {<br>
+&nbsp;&nbsp;?&gt;<br>
+&nbsp;&nbsp;&lt;script&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;window.nexusChatbotConfig = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;position: 'bottom-right',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;theme: 'default'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+&nbsp;&nbsp;&lt;/script&gt;<br>
+&nbsp;&nbsp;&lt;script src="<?php echo get_template_directory_uri(); ?>/js/nexus-chatbot-widget.js"&gt;&lt;/script&gt;<br>
+&nbsp;&nbsp;&lt;?php<br>
+}<br>
+add_action('wp_footer', 'add_nexus_chatbot');
+            </code>
+        </div>
+        
+        <h2>⚙️ Configuration Options</h2>
+        
+        <div class="code-block">
+            <code>
+{<br>
+&nbsp;&nbsp;// API Configuration<br>
+&nbsp;&nbsp;apiBaseUrl: 'https://your-api-endpoint.com',<br>
+&nbsp;&nbsp;sessionId: 'unique-session-id',<br>
+&nbsp;&nbsp;indexName: 'your-index-name',<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;// Appearance<br>
+&nbsp;&nbsp;position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left<br>
+&nbsp;&nbsp;theme: 'default', // default, dark, custom<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;// Behavior<br>
+&nbsp;&nbsp;autoOpen: false, // Auto-open chat on page load<br>
+&nbsp;&nbsp;welcomeMessage: "Hello! How can I help you?",<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;// Custom styling (advanced)<br>
+&nbsp;&nbsp;primaryColor: '#667eea',<br>
+&nbsp;&nbsp;accentColor: '#764ba2'<br>
+}
+            </code>
+        </div>
+        
+        <h2>🔧 API Methods</h2>
+        
+        <div class="code-block">
+            <code>
+// Access the chatbot instance<br>
+const chatbot = NexusChatbot.widget;<br>
+<br>
+// Open/close programmatically<br>
+chatbot.open();<br>
+chatbot.close();<br>
+<br>
+// Send a message programmatically<br>
+chatbot.sendProgrammaticMessage("Hello from the website!");<br>
+<br>
+// Update configuration<br>
+chatbot.updateConfig({ position: 'bottom-left' });<br>
+<br>
+// Remove the widget<br>
+chatbot.destroy();
+            </code>
+        </div>
+        
+        <div class="instructions">
+            <h3>💡 Pro Tips</h3>
+            <ul>
+                <li>Host the <code>nexus-chatbot-widget.js</code> file on your own CDN for best performance</li>
+                <li>Use different session IDs for different pages or user types</li>
+                <li>Customize the welcome message based on the page context</li>
+                <li>Test on mobile devices to ensure proper responsive behavior</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Initialize the chatbot widget -->
+    <script>
+        // Configure the chatbot
+        window.nexusChatbotConfig = {
+            position: 'bottom-right',
+            theme: 'default',
+            autoOpen: false,
+            welcomeMessage: "Welcome to the Nexus Chatbot demo! Try asking me anything."
+        };
+    </script>
+    <script src="nexus-chatbot-widget.js"></script>
+    
+    <!-- Demo functions -->
+    <script>
+        function openChat() {
+            if (window.NexusChatbot && window.NexusChatbot.widget) {
+                window.NexusChatbot.widget.open();
+            }
+        }
+        
+        function closeChat() {
+            if (window.NexusChatbot && window.NexusChatbot.widget) {
+                window.NexusChatbot.widget.close();
+            }
+        }
+        
+        function sendTestMessage() {
+            if (window.NexusChatbot && window.NexusChatbot.widget) {
+                window.NexusChatbot.widget.open();
+                setTimeout(() => {
+                    window.NexusChatbot.widget.sendProgrammaticMessage("This is a test message from the demo page!");
+                }, 500);
+            }
+        }
+        
+        function changeToBotLeft() {
+            if (window.NexusChatbot && window.NexusChatbot.widget) {
+                // Destroy current widget
+                window.NexusChatbot.widget.destroy();
+                // Create new one in bottom-left
+                window.NexusChatbot.start({
+                    position: 'bottom-left',
+                    welcomeMessage: "I'm now on the left side! How can I help?"
+                });
+            }
+        }
+    </script>
+</body>
+</html>
