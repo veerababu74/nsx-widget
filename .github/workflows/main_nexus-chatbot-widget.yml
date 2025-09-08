@@ -55,7 +55,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'YOUR_ACTUAL_APP_SERVICE_NAME'  # Replace with your App Service name
+          app-name: 'nsx-widget'  # Replace with your App Service name
           slot-name: 'Production'
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_NSX_WIDGET }}  # You'll need to set this secret
