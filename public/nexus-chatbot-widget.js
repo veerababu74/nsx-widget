@@ -59,6 +59,34 @@
         }
     }
 
+    async function saveChatReaction(sessionId, messageId, reaction) {
+        try {
+            const requestPayload = {
+                session_id: sessionId,
+                message_id: messageId,
+                reaction: reaction
+            };
+
+            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/v3/chat/reaction`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestPayload),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error saving chat reaction:', error);
+            throw new Error('Failed to save reaction. Please try again.');
+        }
+    }
+
     // Chatbot Widget Class
     class NexusChatbotWidget {
         constructor(config = {}) {
@@ -459,6 +487,69 @@
                         left: auto !important;
                         top: auto !important;
                     }
+                    
+                    .nexus-reaction-btn {
+                        width: 28px !important;
+                        height: 28px !important;
+                        font-size: 14px !important;
+                    }
+                }
+                
+                /* Reaction buttons styling */
+                .nexus-reaction-buttons {
+                    display: flex;
+                    gap: 8px;
+                    margin-top: 8px;
+                    justify-content: flex-start;
+                }
+                
+                .nexus-reaction-btn {
+                    background: none;
+                    border: none;
+                    border-radius: 50%;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    font-size: 16px;
+                    transition: all 0.2s ease;
+                    background-color: rgba(0, 0, 0, 0.05);
+                    opacity: 0.6;
+                }
+                
+                .nexus-reaction-btn:hover {
+                    opacity: 1;
+                    transform: scale(1.1);
+                    background-color: rgba(0, 0, 0, 0.1);
+                }
+                
+                .nexus-reaction-btn.nexus-like:hover {
+                    background-color: rgba(34, 197, 94, 0.2);
+                }
+                
+                .nexus-reaction-btn.nexus-dislike:hover {
+                    background-color: rgba(239, 68, 68, 0.2);
+                }
+                
+                .nexus-reaction-btn.active {
+                    opacity: 1;
+                    transform: scale(1.05);
+                }
+                
+                .nexus-reaction-btn.nexus-like.active {
+                    background-color: rgba(34, 197, 94, 0.3);
+                    color: #22c55e;
+                }
+                
+                .nexus-reaction-btn.nexus-dislike.active {
+                    background-color: rgba(239, 68, 68, 0.3);
+                    color: #ef4444;
+                }
+                
+                .nexus-reaction-btn:active {
+                    transform: scale(0.95);
                 }
             `;
         }
@@ -678,7 +769,10 @@
                     text: response.response || response.message || 'Sorry, I could not process your request.',
                     sender: 'bot',
                     timestamp: new Date(),
-                    metadata: response
+                    metadata: response,
+                    message_id: response.message_id,
+                    session_id: response.session_id || CHATBOT_CONFIG.sessionId,
+                    userReaction: null // Track user's reaction: null, true (like), false (dislike)
                 };
 
                 this.messages.push(botMessage);
@@ -718,6 +812,29 @@
                 
                 contentEl.appendChild(bubbleEl);
                 contentEl.appendChild(timeEl);
+                
+                // Add reaction buttons for bot messages with message_id
+                if (message.sender === 'bot' && message.message_id && !message.isError) {
+                    const reactionsEl = document.createElement('div');
+                    reactionsEl.className = 'nexus-reaction-buttons';
+                    
+                    const likeBtn = document.createElement('button');
+                    likeBtn.className = `nexus-reaction-btn nexus-like ${message.userReaction === true ? 'active' : ''}`;
+                    likeBtn.innerHTML = '👍';
+                    likeBtn.title = 'Like this response';
+                    likeBtn.onclick = () => this.handleReaction(message.id, message.session_id, true);
+                    
+                    const dislikeBtn = document.createElement('button');
+                    dislikeBtn.className = `nexus-reaction-btn nexus-dislike ${message.userReaction === false ? 'active' : ''}`;
+                    dislikeBtn.innerHTML = '👎';
+                    dislikeBtn.title = 'Dislike this response';
+                    dislikeBtn.onclick = () => this.handleReaction(message.id, message.session_id, false);
+                    
+                    reactionsEl.appendChild(likeBtn);
+                    reactionsEl.appendChild(dislikeBtn);
+                    contentEl.appendChild(reactionsEl);
+                }
+                
                 messageEl.appendChild(contentEl);
                 
                 this.messagesArea.appendChild(messageEl);
@@ -758,6 +875,25 @@
 
         formatTime(timestamp) {
             return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async handleReaction(messageId, sessionId, reaction) {
+            try {
+                await saveChatReaction(sessionId, messageId, reaction);
+                
+                // Update the message's reaction state in the local state
+                this.messages = this.messages.map(message => 
+                    message.id === messageId 
+                        ? { ...message, userReaction: reaction }
+                        : message
+                );
+                
+                // Re-render messages to show updated reaction state
+                this.renderMessages();
+            } catch (error) {
+                console.error('Error saving reaction:', error);
+                // Could show a toast notification here
+            }
         }
 
         // Public API methods
