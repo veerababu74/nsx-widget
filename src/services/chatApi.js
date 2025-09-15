@@ -1,8 +1,5 @@
 // Improved Chat API service for enhanced chat functionality
-// Use proxy in development, direct URL in production
-const API_BASE_URL = import.meta.env.DEV 
-    ? '' 
-    : (import.meta.env.VITE_API_BASE_URL || 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net');
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net';
 
 /**
  * Fetch improved chat response from the backend
@@ -13,8 +10,8 @@ export const fetchImprovedChatResponse = async (message) => {
     try {
         const requestPayload = {
             message: message,
-            session_id: "test1234", // Static as requested
-            index_name: "test" // Static as requested
+            session_id: "veera1234", // Static as requested
+            index_name: "veera" // Static as requested
         };
 
         const response = await fetch(`${API_BASE_URL}/nexus/ai/v3/chat`, {
@@ -42,7 +39,7 @@ export const fetchImprovedChatResponse = async (message) => {
  * @param {string} sessionId - Session ID
  * @returns {Promise<Object>} - Session information
  */
-export const getImprovedChatSession = async (sessionId = "test1234") => {
+export const getImprovedChatSession = async (sessionId = "veera1234") => {
     try {
         const response = await fetch(`${API_BASE_URL}/improved-chat/session/${sessionId}`, {
             method: 'GET',
@@ -68,7 +65,7 @@ export const getImprovedChatSession = async (sessionId = "test1234") => {
  * @param {string} sessionId - Session ID to clear
  * @returns {Promise<boolean>} - Success status
  */
-export const clearImprovedChatSession = async (sessionId = "test1234") => {
+export const clearImprovedChatSession = async (sessionId = "veera1234") => {
     try {
         const response = await fetch(`${API_BASE_URL}/improved-chat/session/${sessionId}/clear`, {
             method: 'DELETE',
@@ -85,13 +82,13 @@ export const clearImprovedChatSession = async (sessionId = "test1234") => {
 };
 
 /**
- * Save user reaction to a chatbot response
+ * Save user reaction to an assistant response
  * @param {string} sessionId - Session ID
  * @param {string} messageId - Message ID to react to
- * @param {boolean|null} reaction - true for like, false for dislike, null for no reaction
- * @returns {Promise<Object>} - The API response
+ * @param {boolean} reaction - Reaction (true for like, false for dislike)
+ * @returns {Promise<Object>} - Reaction response
  */
-export const saveReaction = async (sessionId, messageId, reaction) => {
+export const saveChatReaction = async (sessionId, messageId, reaction) => {
     try {
         const requestPayload = {
             session_id: sessionId,
@@ -114,7 +111,7 @@ export const saveReaction = async (sessionId, messageId, reaction) => {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Error saving reaction:', error);
+        console.error('Error saving chat reaction:', error);
         throw new Error('Failed to save reaction. Please try again.');
     }
 };

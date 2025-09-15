@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction } from '../services/chatApi';
+import { fetchImprovedChatResponse, clearImprovedChatSession, saveChatReaction } from '../services/chatApi';
 import './Chatbot.css';
 
 const Chatbot = () => {
@@ -14,7 +14,6 @@ const Chatbot = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [reactions, setReactions] = useState({});
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -48,7 +47,9 @@ const Chatbot = () => {
         sender: 'bot',
         timestamp: new Date(),
         metadata: response,
-        messageId: response.message_id || response.id // Store the API message ID for reactions
+        message_id: response.message_id,
+        session_id: response.session_id || "veera1234",
+        userReaction: null // Track user's reaction: null, true (like), false (dislike)
       };
 
       setMessages(prev => [...prev, botMessage]);
@@ -84,39 +85,29 @@ const Chatbot = () => {
           timestamp: new Date()
         }
       ]);
-      setReactions({});
     } catch (error) {
       console.error('Error clearing chat:', error);
     }
   };
 
-  const handleReaction = async (messageId, apiMessageId, reactionType) => {
-    if (!apiMessageId) return; // Can't react to messages without API message ID
-    
-    try {
-      const currentReaction = reactions[messageId];
-      const newReaction = currentReaction === reactionType ? null : reactionType;
-      
-      // Update local state immediately for better UX
-      setReactions(prev => ({
-        ...prev,
-        [messageId]: newReaction
-      }));
-
-      // Send reaction to API
-      await saveReaction("test1234", apiMessageId, newReaction);
-    } catch (error) {
-      console.error('Error saving reaction:', error);
-      // Revert the reaction on error
-      setReactions(prev => ({
-        ...prev,
-        [messageId]: reactions[messageId]
-      }));
-    }
-  };
-
   const formatTime = (timestamp) => {
     return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleReaction = async (messageId, sessionId, reaction) => {
+    try {
+      await saveChatReaction(sessionId, messageId, reaction);
+      
+      // Update the message's reaction state in the local state
+      setMessages(prev => prev.map(message => 
+        message.id === messageId 
+          ? { ...message, userReaction: reaction }
+          : message
+      ));
+    } catch (error) {
+      console.error('Error saving reaction:', error);
+      // Could show a toast notification here
+    }
   };
 
   return (
@@ -157,29 +148,27 @@ const Chatbot = () => {
                 <div className={`message-bubble ${message.isError ? 'error' : ''}`}>
                   {message.text}
                 </div>
-                <div className="message-footer">
-                  <div className="message-time">
-                    {formatTime(message.timestamp)}
-                  </div>
-                  {message.sender === 'bot' && !message.isError && message.messageId && (
-                    <div className="message-reactions">
-                      <button
-                        className={`reaction-btn ${reactions[message.id] === true ? 'active' : ''}`}
-                        onClick={() => handleReaction(message.id, message.messageId, true)}
-                        title="Like this response"
-                      >
-                        👍
-                      </button>
-                      <button
-                        className={`reaction-btn ${reactions[message.id] === false ? 'active' : ''}`}
-                        onClick={() => handleReaction(message.id, message.messageId, false)}
-                        title="Dislike this response"
-                      >
-                        👎
-                      </button>
-                    </div>
-                  )}
+                <div className="message-time">
+                  {formatTime(message.timestamp)}
                 </div>
+                {message.sender === 'bot' && message.message_id && !message.isError && (
+                  <div className="reaction-buttons">
+                    <button
+                      className={`reaction-btn like ${message.userReaction === true ? 'active' : ''}`}
+                      onClick={() => handleReaction(message.id, message.session_id, true)}
+                      title="Like this response"
+                    >
+                      👍
+                    </button>
+                    <button
+                      className={`reaction-btn dislike ${message.userReaction === false ? 'active' : ''}`}
+                      onClick={() => handleReaction(message.id, message.session_id, false)}
+                      title="Dislike this response"
+                    >
+                      👎
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
