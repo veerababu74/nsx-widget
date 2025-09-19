@@ -1,6 +1,7 @@
-const fs = require('fs-extra');
-const { minify } = require('terser');
-const path = require('path');
+import fs from 'fs-extra';
+import { minify } from 'terser';
+import path from 'path';
+import crypto from 'crypto';
 
 async function buildWidget() {
     console.log('🚀 Building Nexus Chatbot Widget...');
@@ -49,7 +50,6 @@ async function buildWidget() {
         await fs.copy('public/integration-demo.html', 'dist/integration-demo.html');
         
         // Create CDN-ready version with integrity hash
-        const crypto = require('crypto');
         const hash = crypto.createHash('sha384').update(finalCode).digest('base64');
         
         // Generate usage examples
@@ -79,6 +79,15 @@ async function buildWidget() {
 function generateUsageExamples(hash) {
     return `# Nexus Chatbot Widget - Integration Guide
 
+## 🚀 Enhanced Features
+
+This widget now includes:
+- ✅ **Intelligent Suggestions**: Follow-up questions and topic suggestions from AI
+- ✅ **Interactive Reactions**: Like/dislike functionality with visual feedback
+- ✅ **Enhanced API**: Integration with Nexus AI v3 API
+- ✅ **Mobile Optimized**: Responsive design for all devices
+- ✅ **Modern UI**: Gradient backgrounds and smooth animations
+
 ## Quick Start
 
 ### 1. Basic Integration (Recommended)
@@ -89,7 +98,7 @@ function generateUsageExamples(hash) {
   window.nexusChatbotConfig = {
     position: 'bottom-right',
     autoOpen: false,
-    welcomeMessage: "Hello! How can I help you today?"
+    welcomeMessage: "Hello! I'm your AI assistant with enhanced capabilities. How can I help you today?"
   };
 </script>
 <script src="https://your-cdn.com/nexus-chatbot-widget.min.js"></script>
@@ -123,10 +132,10 @@ function generateUsageExamples(hash) {
 
 \`\`\`javascript
 {
-  // API Settings
+  // API Settings (Updated for Enhanced Features)
   apiBaseUrl: 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net',
-  sessionId: 'veera1234',
-  indexName: 'veera',
+  sessionId: 'test1234', // Updated session ID
+  indexName: 'test', // Updated index name
   
   // Appearance
   position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left
@@ -134,9 +143,26 @@ function generateUsageExamples(hash) {
   
   // Behavior
   autoOpen: false,
-  welcomeMessage: "Hello! I'm your AI assistant. How can I help you today?"
+  welcomeMessage: "Hello! I'm your AI assistant with enhanced capabilities. I can provide follow-up questions and topic suggestions to help guide our conversation. How can I help you today?"
 }
 \`\`\`
+
+## 🎯 New Features
+
+### Interactive Suggestions
+- **Follow-up Questions**: AI provides relevant follow-up questions that users can click
+- **Topic Suggestions**: AI suggests related topics for deeper exploration
+- **Smart Input**: Clicking suggestions auto-fills the input field
+
+### Enhanced Reactions
+- **Like/Dislike**: Visual feedback with color changes (green for like, red for dislike)
+- **Toggle Functionality**: Click the same reaction twice to remove it
+- **Instant Updates**: Real-time UI updates with backend synchronization
+
+### Improved API Integration
+- **Nexus AI v3**: Integration with the latest API endpoint
+- **Rich Responses**: Support for structured responses with metadata
+- **Session Management**: Enhanced session tracking and management
 
 ## WordPress Integration
 
@@ -207,6 +233,54 @@ chatbot.updateConfig({ position: 'bottom-left' });
 
 // Remove widget
 chatbot.destroy();
+
+// New Enhanced Methods
+// Handle suggestions programmatically
+chatbot.handleFollowUpClick("What are your capabilities?");
+chatbot.handleTopicClick("artificial intelligence");
+
+// Access reaction system
+chatbot.handleReaction(messageId, sessionId, true); // Like
+chatbot.handleReaction(messageId, sessionId, false); // Dislike
+chatbot.handleReaction(messageId, sessionId, null); // Remove reaction
+\`\`\`
+
+## 🎨 Styling Customization
+
+### Custom CSS Variables
+
+Override the default styles with CSS variables:
+
+\`\`\`css
+:root {
+  /* Primary colors */
+  --nexus-primary-color: #667eea;
+  --nexus-accent-color: #764ba2;
+  
+  /* Reaction colors */
+  --nexus-like-color: #22c55e;
+  --nexus-dislike-color: #ef4444;
+  
+  /* Suggestion colors */
+  --nexus-followup-bg: linear-gradient(135deg, #f8f9ff 0%, #e3e8ff 100%);
+  --nexus-topic-bg: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+\`\`\`
+
+### Custom Suggestion Styling
+
+\`\`\`css
+/* Customize follow-up questions */
+.nexus-follow-up-question {
+  background: your-gradient !important;
+  border-color: your-color !important;
+}
+
+/* Customize topic tags */
+.nexus-topic-tag {
+  background: your-gradient !important;
+  color: your-text-color !important;
+}
 \`\`\`
 
 ## Customization
@@ -240,17 +314,32 @@ const salesBot = NexusChatbot.init({
 
 ## Deployment Checklist
 
+### Basic Setup
 - [ ] Upload \`nexus-chatbot-widget.min.js\` to your CDN
 - [ ] Test on mobile and desktop devices
 - [ ] Verify API endpoint is accessible
 - [ ] Check console for any errors
-- [ ] Test chat functionality
-- [ ] Verify responsive behavior
+
+### Enhanced Features Testing
+- [ ] Test chat functionality with AI responses
+- [ ] Verify follow-up questions appear and are clickable
+- [ ] Test topic suggestions functionality
+- [ ] Check like/dislike reactions work correctly
+- [ ] Verify reaction colors change (green/red)
+- [ ] Test reaction toggle (click twice to remove)
+- [ ] Verify responsive behavior on mobile devices
+- [ ] Test suggestion elements on small screens
+
+### API Integration
+- [ ] Confirm session ID and index name are correct
+- [ ] Test reaction API endpoints
+- [ ] Verify suggestion data is received from API
+- [ ] Check error handling for failed requests
 
 ## File Sizes
 
-- Minified: ~${((await fs.stat('dist/nexus-chatbot-widget.min.js')).size / 1024).toFixed(2)} KB
-- Gzipped: ~${((await fs.stat('dist/nexus-chatbot-widget.min.js')).size / 1024 * 0.3).toFixed(2)} KB (estimated)
+- Minified: Optimized for production use
+- Gzipped: Further compressed when served with gzip
 
 ## Browser Support
 

@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { fetchImprovedChatResponse, clearImprovedChatSession, saveChatReaction } from '../services/chatApi';
+import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction } from '../services/chatApi';
 import './Chatbot.css';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm your AI assistant. How can I help you today?",
+      text: "Hello! I'm your AI assistant with enhanced capabilities. I can provide follow-up questions and topic suggestions to help guide our conversation. How can I help you today?",
       sender: 'bot',
       timestamp: new Date()
     }
@@ -48,8 +48,10 @@ const Chatbot = () => {
         timestamp: new Date(),
         metadata: response,
         message_id: response.message_id,
-        session_id: response.session_id || "veera1234",
-        userReaction: null // Track user's reaction: null, true (like), false (dislike)
+        session_id: response.session_id || "test1234",
+        userReaction: null, // Track user's reaction: null, true (like), false (dislike)
+        followUpQuestion: response.follow_up_question,
+        suggestedTopics: response.suggested_topics
       };
 
       setMessages(prev => [...prev, botMessage]);
@@ -80,7 +82,7 @@ const Chatbot = () => {
       setMessages([
         {
           id: 1,
-          text: "Hello! I'm your AI assistant. How can I help you today?",
+          text: "Hello! I'm your AI assistant with enhanced capabilities. I can provide follow-up questions and topic suggestions to help guide our conversation. How can I help you today?",
           sender: 'bot',
           timestamp: new Date()
         }
@@ -96,18 +98,53 @@ const Chatbot = () => {
 
   const handleReaction = async (messageId, sessionId, reaction) => {
     try {
-      await saveChatReaction(sessionId, messageId, reaction);
+      // Find the current reaction for this message
+      const currentMessage = messages.find(msg => msg.id === messageId);
+      const currentReaction = currentMessage?.userReaction;
       
-      // Update the message's reaction state in the local state
+      // If clicking the same reaction, remove it (set to null)
+      const newReaction = currentReaction === reaction ? null : reaction;
+      
+      // Update local state immediately for better UX
       setMessages(prev => prev.map(message => 
         message.id === messageId 
-          ? { ...message, userReaction: reaction }
+          ? { ...message, userReaction: newReaction }
           : message
       ));
+      
+      // Save reaction to backend
+      await saveReaction(sessionId, messageId, newReaction);
     } catch (error) {
       console.error('Error saving reaction:', error);
-      // Could show a toast notification here
+      // Revert local state on error
+      setMessages(prev => prev.map(message => 
+        message.id === messageId 
+          ? { ...message, userReaction: currentMessage?.userReaction || null }
+          : message
+      ));
     }
+  };
+
+  const handleFollowUpClick = (followUpQuestion) => {
+    setInputMessage(followUpQuestion);
+    // Focus the input after a short delay to ensure it's rendered
+    setTimeout(() => {
+      const textarea = document.querySelector('.chatbot-input textarea');
+      if (textarea) {
+        textarea.focus();
+      }
+    }, 100);
+  };
+
+  const handleTopicClick = (topic) => {
+    setInputMessage(`Tell me about ${topic}`);
+    // Focus the input after a short delay to ensure it's rendered
+    setTimeout(() => {
+      const textarea = document.querySelector('.chatbot-input textarea');
+      if (textarea) {
+        textarea.focus();
+      }
+    }, 100);
   };
 
   return (
@@ -148,20 +185,56 @@ const Chatbot = () => {
                 <div className={`message-bubble ${message.isError ? 'error' : ''}`}>
                   {message.text}
                 </div>
+                
+                {/* Follow-up question */}
+                {message.sender === 'bot' && message.followUpQuestion && !message.isError && (
+                  <div className="follow-up-section">
+                    <div 
+                      className="follow-up-question"
+                      onClick={() => handleFollowUpClick(message.followUpQuestion)}
+                      title="Click to ask this question"
+                    >
+                      <span className="follow-up-icon">💡</span>
+                      <span className="follow-up-text">{message.followUpQuestion}</span>
+                      <span className="follow-up-arrow">→</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Suggested topics */}
+                {message.sender === 'bot' && message.suggestedTopics && message.suggestedTopics.length > 0 && !message.isError && (
+                  <div className="suggested-topics-section">
+                    <div className="topics-label">🏷️ Suggested Topics</div>
+                    <div className="suggested-topics">
+                      {message.suggestedTopics.map((topic, index) => (
+                        <span
+                          key={index}
+                          className="topic-tag"
+                          onClick={() => handleTopicClick(topic)}
+                          title={`Click to ask about: ${topic}`}
+                        >
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="message-time">
                   {formatTime(message.timestamp)}
                 </div>
+                
                 {message.sender === 'bot' && message.message_id && !message.isError && (
                   <div className="reaction-buttons">
                     <button
-                      className={`reaction-btn like ${message.userReaction === true ? 'active' : ''}`}
+                      className={`reaction-btn like ${message.userReaction === true ? 'active liked' : ''}`}
                       onClick={() => handleReaction(message.id, message.session_id, true)}
                       title="Like this response"
                     >
                       👍
                     </button>
                     <button
-                      className={`reaction-btn dislike ${message.userReaction === false ? 'active' : ''}`}
+                      className={`reaction-btn dislike ${message.userReaction === false ? 'active disliked' : ''}`}
                       onClick={() => handleReaction(message.id, message.session_id, false)}
                       title="Dislike this response"
                     >

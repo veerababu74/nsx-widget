@@ -340,18 +340,107 @@
   transform: scale(1.05);
 }
 
-.reaction-btn.like.active {
-  background-color: rgba(34, 197, 94, 0.3);
-  color: #22c55e;
+.reaction-btn.like.active,
+.reaction-btn.liked {
+  background-color: #22c55e !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
 }
 
-.reaction-btn.dislike.active {
-  background-color: rgba(239, 68, 68, 0.3);
-  color: #ef4444;
+.reaction-btn.dislike.active,
+.reaction-btn.disliked {
+  background-color: #ef4444 !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
 }
 
 .reaction-btn:active {
   transform: scale(0.95);
+}
+
+/* Suggestions styling */
+.follow-up-section {
+  margin-top: 12px;
+}
+
+.follow-up-question {
+  background: linear-gradient(135deg, #f8f9ff 0%, #e3e8ff 100%);
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.follow-up-question:hover {
+  background: linear-gradient(135deg, #eef2ff 0%, #ddd6fe 100%);
+  border-color: #a78bfa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+}
+
+.follow-up-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.follow-up-text {
+  flex: 1;
+  color: #4c1d95;
+  font-weight: 500;
+}
+
+.follow-up-arrow {
+  font-size: 12px;
+  color: #7c3aed;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.follow-up-question:hover .follow-up-arrow {
+  transform: translateX(2px);
+}
+
+.suggested-topics-section {
+  margin-top: 12px;
+}
+
+.topics-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.suggested-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.topic-tag {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.topic-tag:hover {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border-color: #0ea5e9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.2);
+  color: #0c4a6e;
 }
 
 /* Mobile responsiveness */
@@ -373,5 +462,15 @@
     width: 28px;
     height: 28px;
     font-size: 14px;
+  }
+
+  .follow-up-question {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .topic-tag {
+    padding: 3px 8px;
+    font-size: 11px;
   }
 }

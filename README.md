@@ -10,7 +10,7 @@ Add this to any website before the closing `</body>` tag:
 <script>
   window.nexusChatbotConfig = {
     position: 'bottom-right',
-    welcomeMessage: "Hello! How can I help you today?"
+    welcomeMessage: "Hello! I'm your AI assistant with enhanced capabilities. How can I help you today?"
   };
 </script>
 <script src="https://your-domain.com/nexus-chatbot-widget.js"></script>
@@ -18,15 +18,17 @@ Add this to any website before the closing `</body>` tag:
 
 **That's it!** Your website now has a professional AI chatbot.
 
-## ✨ Features
+## ✨ Enhanced Features
 
-- 🤖 **AI-Powered**: Integrated with Nexus AI API for intelligent responses
+- 🤖 **Advanced AI**: Integrated with Nexus AI v3 API for intelligent responses
+- 💡 **Smart Suggestions**: AI provides follow-up questions and topic suggestions
+- 👍 **Interactive Reactions**: Like/dislike functionality with visual feedback
 - 🌐 **Universal**: Works on ANY website - WordPress, Shopify, React, Vue, vanilla HTML
-- 📱 **Responsive**: Perfect experience on mobile, tablet, and desktop
-- ⚡ **Lightweight**: ~25KB minified, no dependencies
-- 🎨 **Customizable**: Multiple positions, themes, and styling options
+- 📱 **Mobile Optimized**: Perfect responsive experience on all devices
+- ⚡ **Lightweight**: ~30KB minified, no dependencies
+- 🎨 **Modern UI**: Beautiful gradients, animations, and hover effects
 - 🔧 **Easy Setup**: Just 2-3 lines of code to integrate
-- � **Session Management**: Persistent conversations with clear history option
+- 📊 **Session Management**: Enhanced session tracking with reaction analytics
 
 ## 🎯 Platform Examples
 
@@ -78,27 +80,49 @@ npm run dev
 2. Click the chat button to test functionality
 3. Try the integration demo at http://localhost:5173/integration-demo.html
 
+## 🎯 New Enhanced Features
+
+### 💡 Intelligent Suggestions
+- **Follow-up Questions**: AI automatically suggests relevant follow-up questions
+- **Topic Suggestions**: Smart topic tags for deeper exploration
+- **Click to Chat**: Users can click suggestions to instantly ask questions
+
+### 👍 Interactive Reactions
+- **Like/Dislike System**: Users can rate AI responses with visual feedback
+- **Color Feedback**: Green for likes, red for dislikes with smooth animations  
+- **Toggle Functionality**: Click the same reaction twice to remove it
+- **Analytics Ready**: All reactions are tracked for improvement insights
+
+### � Enhanced User Experience
+- **Modern UI**: Beautiful gradient backgrounds and hover effects
+- **Smooth Animations**: Professional transitions and micro-interactions
+- **Mobile Optimized**: Perfect touch-friendly experience on all devices
+- **Smart Input**: Auto-fill and focus management for seamless interaction
+
 ## 📦 Files Structure
 
 ```
 nexus-chatbot/
+├── dist/                          # 📦 Production builds
+│   ├── nexus-chatbot-widget.min.js # 🎯 Minified widget (30KB)
+│   ├── nexus-chatbot-widget.js     # 🔍 Unminified for debugging
+│   └── INTEGRATION.md              # � Complete integration guide
 ├── public/
-│   ├── nexus-chatbot-widget.js     # 🎯 Main widget file (copy this!)
-│   ├── integration-demo.html       # 📋 Integration examples
-│   └── simple-test.html           # 🧪 Simple test page
+│   ├── nexus-chatbot-widget.js     # 🛠️ Development version
+│   └── integration-demo.html       # 🧪 Live demo page
 ├── src/                           # React development version
-├── INTEGRATION.md                 # 📖 Detailed integration guide
-└── README.md                      # This file
+└── scripts/
+    └── build-widget.js            # 🔨 Build script
 ```
 
 ## ⚙️ Configuration Options
 
 ```javascript
 window.nexusChatbotConfig = {
-  // API Settings
-  apiBaseUrl: 'https://your-api-endpoint.com',
-  sessionId: 'unique-session-id',
-  indexName: 'your-index-name',
+  // Enhanced API Settings (Updated for v3)
+  apiBaseUrl: 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net',
+  sessionId: 'test1234', // Updated session ID for new API
+  indexName: 'test', // Updated index name for new API
   
   // Widget Appearance
   position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left
@@ -123,17 +147,47 @@ chatbot.sendProgrammaticMessage("Hello!"); // Send message
 chatbot.destroy();                 // Remove widget
 ```
 
-## 🚀 Production Deployment
+## � Building the Widget
 
-1. **Copy the widget file**: Take `public/nexus-chatbot-widget.js`
-2. **Upload to your website**: Put it in your `/js/` folder or CDN
+Build the optimized production version:
+
+```bash
+# Install dependencies
+npm install
+
+# Build the widget (generates dist/ folder)
+npm run build-widget
+
+# Files generated:
+# - dist/nexus-chatbot-widget.min.js (29KB minified)
+# - dist/nexus-chatbot-widget.js (43KB unminified)  
+# - dist/INTEGRATION.md (complete guide)
+```
+
+## �🚀 Production Deployment
+
+### Option 1: Use Built Files (Recommended)
+1. **Run build**: `npm run build-widget`
+2. **Use minified version**: Take `dist/nexus-chatbot-widget.min.js`
+3. **Upload to CDN**: Put it on your CDN or `/js/` folder
+4. **Add integration code**: Use the examples above
+
+### Option 2: Development Version
+1. **Copy widget file**: Take `public/nexus-chatbot-widget.js`  
+2. **Upload to website**: Put it in your `/js/` folder
 3. **Add integration code**: Use the examples above
-4. **Test**: Verify it works on your website
 
-### CDN Deployment
-Upload to any CDN and reference like:
+### CDN Deployment Examples
 ```html
-<script src="https://your-cdn.com/nexus-chatbot-widget.js"></script>
+<!-- Minified version (recommended) -->
+<script src="https://your-cdn.com/nexus-chatbot-widget.min.js"></script>
+
+<!-- With integrity check -->
+<script 
+  src="https://your-cdn.com/nexus-chatbot-widget.min.js"
+  integrity="sha384-[generated-hash]"
+  crossorigin="anonymous">
+</script>
 ```
 
 ## 🌍 Browser Support

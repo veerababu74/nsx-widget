@@ -15,12 +15,7 @@
         position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left
         theme: 'default', // default, dark, custom
         autoOpen: false,
-        welcomeMessage: "Hi! Ask me about our services, fees, or how to get started.",
-        clinicName: "Deepak Pain Clinic",
-        privacyNoticeText: "I'm an educational assistant. I don't provide medical advice or diagnosis.",
-        privacyNoticeLink: "Privacy Notice",
-        bookNowText: "Book now",
-        sendEmailText: "Send an email"
+        welcomeMessage: "Hello! I'm your AI assistant with enhanced capabilities. I can provide follow-up questions and topic suggestions to help guide our conversation. How can I help you today?"
     };
 
     // API Functions
@@ -115,7 +110,6 @@
             this.isLoading = false;
             this.isOpen = this.config.autoOpen;
             this.container = null;
-            this.privacyAgreed = false;
             
             this.init();
         }
@@ -170,9 +164,9 @@
                 }
                 
                 .nexus-chatbot-container {
-                    width: 650px;
+                    width: 450px;
                     max-width: calc(100vw - 40px);
-                    height: 480px;
+                    height: 500px;
                     max-height: calc(100vh - 80px);
                     background: white;
                     border-radius: 16px;
@@ -664,113 +658,6 @@
                     box-shadow: 0 2px 6px rgba(14, 165, 233, 0.2);
                     color: #0c4a6e;
                 }
-
-                /* Privacy Notice Styles */
-                .nexus-privacy-notice {
-                    background: #fff3cd;
-                    border: 1px solid #ffeaa7;
-                    border-radius: 8px;
-                    padding: 12px 16px;
-                    margin: 16px 20px;
-                    font-size: 14px;
-                    color: #856404;
-                    line-height: 1.4;
-                }
-
-                .nexus-privacy-notice p {
-                    margin: 0 0 8px 0;
-                }
-
-                .nexus-privacy-notice a {
-                    color: #007bff;
-                    text-decoration: underline;
-                    cursor: pointer;
-                }
-
-                .nexus-privacy-notice a:hover {
-                    color: #0056b3;
-                }
-
-                .nexus-privacy-agree {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-top: 12px;
-                }
-
-                .nexus-privacy-agree input[type="checkbox"] {
-                    margin: 0;
-                }
-
-                .nexus-privacy-agree label {
-                    font-size: 13px;
-                    cursor: pointer;
-                    user-select: none;
-                }
-
-                .nexus-agree-btn {
-                    background: #007bff;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    margin-left: auto;
-                    transition: background 0.2s;
-                }
-
-                .nexus-agree-btn:hover {
-                    background: #0056b3;
-                }
-
-                .nexus-agree-btn:disabled {
-                    background: #ccc;
-                    cursor: not-allowed;
-                }
-
-                /* Action Buttons Styles */
-                .nexus-action-buttons {
-                    padding: 16px 20px;
-                    border-top: 1px solid #eee;
-                    display: flex;
-                    gap: 12px;
-                    background: #f8f9fa;
-                }
-
-                .nexus-action-btn {
-                    flex: 1;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    border: none;
-                    padding: 12px 16px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    font-weight: 500;
-                    transition: all 0.2s ease;
-                    text-align: center;
-                }
-
-                .nexus-action-btn:hover {
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                }
-
-                .nexus-action-btn.secondary {
-                    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                }
-
-                .nexus-chatbot-container.privacy-mode .nexus-chatbot-input,
-                .nexus-chatbot-container.privacy-mode .nexus-action-buttons {
-                    display: none;
-                }
-
-                .nexus-chatbot-container.privacy-mode .nexus-chatbot-messages {
-                    flex: none;
-                    height: auto;
-                    max-height: 200px;
-                }
             `;
         }
 
@@ -787,13 +674,10 @@
             
             // Create chat container
             const chatContainer = document.createElement('div');
-            chatContainer.className = `nexus-chatbot-container ${this.isOpen ? 'open' : ''} privacy-mode`;
+            chatContainer.className = `nexus-chatbot-container ${this.isOpen ? 'open' : ''}`;
             
             // Create header
             const header = this.createHeader();
-            
-            // Create privacy notice
-            const privacyNotice = this.createPrivacyNotice();
             
             // Create messages area
             const messagesArea = document.createElement('div');
@@ -802,15 +686,10 @@
             // Create input area
             const inputArea = this.createInputArea();
             
-            // Create action buttons
-            const actionButtons = this.createActionButtons();
-            
             // Assemble widget
             chatContainer.appendChild(header);
-            chatContainer.appendChild(privacyNotice);
             chatContainer.appendChild(messagesArea);
             chatContainer.appendChild(inputArea);
-            chatContainer.appendChild(actionButtons);
             
             this.container.appendChild(toggleBtn);
             this.container.appendChild(chatContainer);
@@ -822,10 +701,8 @@
             this.toggleBtn = toggleBtn;
             this.chatContainer = chatContainer;
             this.messagesArea = messagesArea;
-            this.privacyNotice = privacyNotice;
             this.inputTextarea = inputArea.querySelector('textarea');
             this.sendBtn = inputArea.querySelector('.nexus-send-btn');
-            this.actionButtons = actionButtons;
             
             // Ensure proper positioning within viewport
             this.adjustPosition();
@@ -841,7 +718,7 @@
             
             // Check if chat container would overflow on the right
             if (this.config.position.includes('right')) {
-                const rightOverflow = (rect.right + 650) > window.innerWidth;
+                const rightOverflow = (rect.right + 450) > window.innerWidth;
                 if (rightOverflow) {
                     // Adjust the container position to prevent overflow
                     this.chatContainer.style.right = '0px';
@@ -849,23 +726,23 @@
                     
                     // If still overflowing, make it smaller
                     const availableWidth = window.innerWidth - rect.left - 40;
-                    if (availableWidth < 650) {
-                        this.chatContainer.style.width = `${Math.max(350, availableWidth)}px`;
+                    if (availableWidth < 450) {
+                        this.chatContainer.style.width = `${Math.max(300, availableWidth)}px`;
                     }
                 }
             }
             
             // Check if chat container would overflow on the left
             if (this.config.position.includes('left')) {
-                const leftOverflow = (rect.left - 650) < 0;
+                const leftOverflow = (rect.left - 450) < 0;
                 if (leftOverflow) {
                     this.chatContainer.style.left = '0px';
                     this.chatContainer.style.right = 'auto';
                     
                     // If still overflowing, make it smaller
                     const availableWidth = window.innerWidth - rect.right - 40;
-                    if (availableWidth < 650) {
-                        this.chatContainer.style.width = `${Math.max(350, availableWidth)}px`;
+                    if (availableWidth < 450) {
+                        this.chatContainer.style.width = `${Math.max(300, availableWidth)}px`;
                     }
                 }
             }
@@ -878,8 +755,8 @@
                 <div class="nexus-header-info">
                     <div class="nexus-bot-avatar">🤖</div>
                     <div>
-                        <h3>${this.config.clinicName}</h3>
-                        <span class="nexus-status">Educational only</span>
+                        <h3>Nexus AI Assistant</h3>
+                        <span class="nexus-status">Online</span>
                     </div>
                 </div>
                 <div class="nexus-header-actions">
@@ -900,35 +777,6 @@
                 </div>
             `;
             return inputArea;
-        }
-
-        createPrivacyNotice() {
-            const privacyNotice = document.createElement('div');
-            privacyNotice.className = 'nexus-privacy-notice';
-            privacyNotice.innerHTML = `
-                <p>${this.config.privacyNoticeText}</p>
-                <p>By continuing, you consent to educational responses and lead capture. See our <a href="#" onclick="alert('Privacy Notice: We collect basic information to improve our services.')">Privacy Notice</a>.</p>
-                <div class="nexus-privacy-agree">
-                    <input type="checkbox" id="nexus-privacy-checkbox">
-                    <label for="nexus-privacy-checkbox">I agree</label>
-                    <button class="nexus-agree-btn" disabled onclick="window.nexusChatbot.handlePrivacyAgreement()">I agree</button>
-                </div>
-            `;
-            return privacyNotice;
-        }
-
-        createActionButtons() {
-            const actionButtons = document.createElement('div');
-            actionButtons.className = 'nexus-action-buttons';
-            actionButtons.innerHTML = `
-                <button class="nexus-action-btn" onclick="alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.')">
-                    ${this.config.bookNowText}
-                </button>
-                <button class="nexus-action-btn secondary" onclick="alert('Send Email: Please email us at your clinic email address.')">
-                    ${this.config.sendEmailText}
-                </button>
-            `;
-            return actionButtons;
         }
 
         attachEventListeners() {
@@ -962,18 +810,6 @@
             window.addEventListener('resize', () => {
                 this.adjustPosition();
             });
-
-            // Privacy checkbox
-            const privacyCheckbox = this.container.querySelector('#nexus-privacy-checkbox');
-            const agreeBtn = this.container.querySelector('.nexus-agree-btn');
-            if (privacyCheckbox && agreeBtn) {
-                privacyCheckbox.addEventListener('change', () => {
-                    agreeBtn.disabled = !privacyCheckbox.checked;
-                });
-            }
-
-            // Set up global reference for privacy agreement
-            window.nexusChatbot = this;
         }
 
         toggleChat() {
@@ -995,17 +831,6 @@
             this.chatContainer.classList.remove('open');
         }
 
-        handlePrivacyAgreement() {
-            this.privacyAgreed = true;
-            this.chatContainer.classList.remove('privacy-mode');
-            this.privacyNotice.style.display = 'none';
-            
-            // Focus on input after agreeing to privacy
-            if (this.inputTextarea) {
-                this.inputTextarea.focus();
-            }
-        }
-
         async clearChat() {
             try {
                 await clearChatSession();
@@ -1024,11 +849,6 @@
         }
 
         async sendMessage() {
-            if (!this.privacyAgreed) {
-                alert('Please agree to the privacy notice first.');
-                return;
-            }
-
             const message = this.inputTextarea.value.trim();
             if (!message || this.isLoading) return;
 
@@ -1081,23 +901,10 @@
             }
         }
 
-        getLatestBotMessageIndex() {
-            // Find the index of the last bot message in the array
-            for (let i = this.messages.length - 1; i >= 0; i--) {
-                if (this.messages[i].sender === 'bot' && !this.messages[i].isError) {
-                    return i;
-                }
-            }
-            return -1; // No bot message found
-        }
-
         renderMessages() {
             this.messagesArea.innerHTML = '';
             
-            // Find the index of the latest bot message
-            const latestBotMessageIndex = this.getLatestBotMessageIndex();
-            
-            this.messages.forEach((message, index) => {
+            this.messages.forEach(message => {
                 const messageEl = document.createElement('div');
                 messageEl.className = `nexus-message ${message.sender}`;
                 
@@ -1109,12 +916,9 @@
                 bubbleEl.textContent = message.text;
                 
                 contentEl.appendChild(bubbleEl);
-                
-                // Check if this is the latest bot message for showing reactions and suggestions
-                const isLatestBotMessage = (message.sender === 'bot' && index === latestBotMessageIndex);
 
-                // Add follow-up question only for the latest bot message
-                if (isLatestBotMessage && message.followUpQuestion && !message.isError) {
+                // Add follow-up question for bot messages
+                if (message.sender === 'bot' && message.followUpQuestion && !message.isError) {
                     const followUpEl = document.createElement('div');
                     followUpEl.className = 'nexus-follow-up-section';
                     
@@ -1132,8 +936,8 @@
                     contentEl.appendChild(followUpEl);
                 }
 
-                // Add suggested topics only for the latest bot message
-                if (isLatestBotMessage && message.suggestedTopics && message.suggestedTopics.length > 0 && !message.isError) {
+                // Add suggested topics for bot messages
+                if (message.sender === 'bot' && message.suggestedTopics && message.suggestedTopics.length > 0 && !message.isError) {
                     const topicsSection = document.createElement('div');
                     topicsSection.className = 'nexus-suggested-topics-section';
                     
@@ -1164,8 +968,8 @@
                 
                 contentEl.appendChild(timeEl);
                 
-                // Add reaction buttons only for the latest bot message with message_id
-                if (isLatestBotMessage && message.message_id && !message.isError) {
+                // Add reaction buttons for bot messages with message_id
+                if (message.sender === 'bot' && message.message_id && !message.isError) {
                     const reactionsEl = document.createElement('div');
                     reactionsEl.className = 'nexus-reaction-buttons';
                     

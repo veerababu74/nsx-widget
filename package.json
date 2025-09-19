@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build-widget": "node scripts/build-widget.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server.js"
@@ -23,7 +24,9 @@
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "fs-extra": "^11.3.2",
     "globals": "^16.3.0",
+    "terser": "^5.44.0",
     "vite": "^7.1.2"
   }
 }
