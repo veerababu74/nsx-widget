@@ -27,7 +27,7 @@
                 index_name: CHATBOT_CONFIG.indexName
             };
 
-            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/v3/chat`, {
+            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/widget/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,7 +49,7 @@
 
     async function clearChatSession(sessionId = CHATBOT_CONFIG.sessionId) {
         try {
-            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/improved-chat/session/${sessionId}/clear`, {
+            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/widget/session/${sessionId}/clear`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,7 +70,7 @@
                 reaction: reaction
             };
 
-            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/v3/chat/reaction`, {
+            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/widget/chat/reaction`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -10,8 +10,8 @@
         apiBaseUrl: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
             ? '' 
             : 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net',
-        sessionId: 'test1234',
-        indexName: 'test',
+        sessionId: null, // Will be generated dynamically
+        indexName: 'default',
         position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left
         theme: 'default', // default, dark, custom
         autoOpen: false,
@@ -23,6 +23,16 @@
         sendEmailText: "Send an email"
     };
 
+    // Generate unique session ID
+    function generateSessionId() {
+        return `widget_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    // Initialize session ID
+    if (!CHATBOT_CONFIG.sessionId) {
+        CHATBOT_CONFIG.sessionId = generateSessionId();
+    }
+
     // API Functions
     async function fetchChatResponse(message) {
         try {
@@ -32,10 +42,11 @@
                 index_name: CHATBOT_CONFIG.indexName
             };
 
-            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/v3/chat`, {
+            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/widget/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'accept': 'application/json',
                 },
                 body: JSON.stringify(requestPayload),
             });
@@ -54,16 +65,23 @@
 
     async function clearChatSession(sessionId = CHATBOT_CONFIG.sessionId) {
         try {
-            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/improved-chat/session/${sessionId}/clear`, {
+            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/widget/session/${sessionId}/clear`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                    'accept': 'application/json',
                 },
             });
-            return response.ok;
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data;
         } catch (error) {
             console.error('Error clearing chat session:', error);
-            return false;
+            throw error;
         }
     }
 
@@ -75,10 +93,11 @@
                 reaction: reaction
             };
 
-            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/v3/chat/reaction`, {
+            const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/widget/chat/reaction`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'accept': 'application/json',
                 },
                 body: JSON.stringify(requestPayload),
             });

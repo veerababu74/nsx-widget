@@ -22,11 +22,6 @@ export default defineConfig({
             console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
           });
         },
-      },
-      '/improved-chat': {
-        target: 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net',
-        changeOrigin: true,
-        secure: true,
       }
     }
   },
