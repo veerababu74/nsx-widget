@@ -114,6 +114,36 @@
         }
     }
 
+    // Send email API function
+    async function sendEmail(name, email, message) {
+        try {
+            const requestPayload = {
+                Name: name,
+                ContactPersonEmail: email,
+                Message: message
+            };
+
+            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/SendAnEmail/SendMail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json',
+                },
+                body: JSON.stringify(requestPayload),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.text(); // API returns text/plain
+            return data;
+        } catch (error) {
+            console.error('Error sending email:', error);
+            throw new Error('Failed to send email. Please try again.');
+        }
+    }
+
     // Backward compatibility alias
     async function saveChatReaction(sessionId, messageId, reaction) {
         return saveReaction(sessionId, messageId, reaction);
@@ -790,6 +820,184 @@
                     height: auto;
                     max-height: 200px;
                 }
+
+                /* Email Form Popup Styles */
+                .nexus-email-form-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1001;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                }
+
+                .nexus-email-form-overlay.show {
+                    opacity: 1;
+                    visibility: visible;
+                }
+
+                .nexus-email-form {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 24px;
+                    width: 90%;
+                    max-width: 400px;
+                    max-height: 90%;
+                    overflow-y: auto;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    transform: scale(0.8) translateY(20px);
+                    transition: all 0.3s ease;
+                }
+
+                .nexus-email-form-overlay.show .nexus-email-form {
+                    transform: scale(1) translateY(0);
+                }
+
+                .nexus-email-form h3 {
+                    margin: 0 0 16px 0;
+                    color: #333;
+                    font-size: 18px;
+                    font-weight: 600;
+                }
+
+                .nexus-email-form-group {
+                    margin-bottom: 16px;
+                }
+
+                .nexus-email-form-group label {
+                    display: block;
+                    margin-bottom: 6px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #555;
+                }
+
+                .nexus-email-form-group input,
+                .nexus-email-form-group textarea {
+                    width: 100%;
+                    padding: 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-family: inherit;
+                    transition: border-color 0.2s;
+                    box-sizing: border-box;
+                }
+
+                .nexus-email-form-group input:focus,
+                .nexus-email-form-group textarea:focus {
+                    outline: none;
+                    border-color: #667eea;
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+
+                .nexus-email-form-group textarea {
+                    resize: vertical;
+                    min-height: 100px;
+                    max-height: 200px;
+                }
+
+                .nexus-email-form-buttons {
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 20px;
+                }
+
+                .nexus-email-form-btn {
+                    flex: 1;
+                    padding: 12px 16px;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+
+                .nexus-email-form-btn.primary {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                }
+
+                .nexus-email-form-btn.primary:hover:not(:disabled) {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                }
+
+                .nexus-email-form-btn.primary:disabled {
+                    background: #ccc;
+                    cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
+                }
+
+                .nexus-email-form-btn.secondary {
+                    background: #f8f9fa;
+                    color: #666;
+                    border: 1px solid #ddd;
+                }
+
+                .nexus-email-form-btn.secondary:hover {
+                    background: #e9ecef;
+                    border-color: #adb5bd;
+                }
+
+                .nexus-email-form-loading {
+                    display: none;
+                    align-items: center;
+                    gap: 8px;
+                    color: #666;
+                    font-size: 14px;
+                }
+
+                .nexus-email-form-loading.show {
+                    display: flex;
+                }
+
+                .nexus-email-form-loading .nexus-spinner {
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid #f3f3f3;
+                    border-top: 2px solid #667eea;
+                    border-radius: 50%;
+                    animation: nexus-spin 1s linear infinite;
+                }
+
+                @keyframes nexus-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+
+                .nexus-email-form-success {
+                    display: none;
+                    text-align: center;
+                    color: #28a745;
+                    font-size: 14px;
+                    margin-top: 12px;
+                }
+
+                .nexus-email-form-success.show {
+                    display: block;
+                }
+
+                .nexus-email-form-error {
+                    display: none;
+                    text-align: center;
+                    color: #dc3545;
+                    font-size: 14px;
+                    margin-top: 12px;
+                }
+
+                .nexus-email-form-error.show {
+                    display: block;
+                }
             `;
         }
 
@@ -824,12 +1032,16 @@
             // Create action buttons
             const actionButtons = this.createActionButtons();
             
+            // Create email form
+            const emailForm = this.createEmailForm();
+            
             // Assemble widget
             chatContainer.appendChild(header);
             chatContainer.appendChild(privacyNotice);
             chatContainer.appendChild(messagesArea);
             chatContainer.appendChild(inputArea);
             chatContainer.appendChild(actionButtons);
+            chatContainer.appendChild(emailForm);
             
             this.container.appendChild(toggleBtn);
             this.container.appendChild(chatContainer);
@@ -845,6 +1057,7 @@
             this.inputTextarea = inputArea.querySelector('textarea');
             this.sendBtn = inputArea.querySelector('.nexus-send-btn');
             this.actionButtons = actionButtons;
+            this.emailForm = emailForm;
             
             // Ensure proper positioning within viewport
             this.adjustPosition();
@@ -943,11 +1156,54 @@
                 <button class="nexus-action-btn" onclick="alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.')">
                     ${this.config.bookNowText}
                 </button>
-                <button class="nexus-action-btn secondary" onclick="alert('Send Email: Please email us at your clinic email address.')">
+                <button class="nexus-action-btn secondary" onclick="window.nexusChatbot.showEmailForm()">
                     ${this.config.sendEmailText}
                 </button>
             `;
             return actionButtons;
+        }
+
+        createEmailForm() {
+            const emailFormOverlay = document.createElement('div');
+            emailFormOverlay.className = 'nexus-email-form-overlay';
+            emailFormOverlay.innerHTML = `
+                <div class="nexus-email-form">
+                    <h3>Send us an Email</h3>
+                    <form id="nexus-email-form">
+                        <div class="nexus-email-form-group">
+                            <label for="nexus-email-name">Your Name*</label>
+                            <input type="text" id="nexus-email-name" name="name" required>
+                        </div>
+                        <div class="nexus-email-form-group">
+                            <label for="nexus-email-address">Your Email*</label>
+                            <input type="email" id="nexus-email-address" name="email" required>
+                        </div>
+                        <div class="nexus-email-form-group">
+                            <label for="nexus-email-message">Message*</label>
+                            <textarea id="nexus-email-message" name="message" placeholder="Please tell us how we can help you..." required></textarea>
+                        </div>
+                        <div class="nexus-email-form-loading">
+                            <div class="nexus-spinner"></div>
+                            <span>Sending email...</span>
+                        </div>
+                        <div class="nexus-email-form-success">
+                            ✅ Email sent successfully! We'll get back to you soon.
+                        </div>
+                        <div class="nexus-email-form-error">
+                            ❌ Failed to send email. Please try again.
+                        </div>
+                        <div class="nexus-email-form-buttons">
+                            <button type="button" class="nexus-email-form-btn secondary" onclick="window.nexusChatbot.hideEmailForm()">
+                                Cancel
+                            </button>
+                            <button type="submit" class="nexus-email-form-btn primary">
+                                Send Email
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            return emailFormOverlay;
         }
 
         attachEventListeners() {
@@ -990,6 +1246,19 @@
                     agreeBtn.disabled = !privacyCheckbox.checked;
                 });
             }
+
+            // Email form event listeners
+            const emailFormElement = this.container.querySelector('#nexus-email-form');
+            if (emailFormElement) {
+                emailFormElement.addEventListener('submit', (e) => this.handleEmailSubmit(e));
+            }
+
+            // Email form overlay click to close
+            this.emailForm.addEventListener('click', (e) => {
+                if (e.target === this.emailForm) {
+                    this.hideEmailForm();
+                }
+            });
 
             // Set up global reference for privacy agreement
             window.nexusChatbot = this;
@@ -1294,6 +1563,99 @@
             // Auto-resize the textarea
             this.inputTextarea.style.height = 'auto';
             this.inputTextarea.style.height = this.inputTextarea.scrollHeight + 'px';
+        }
+
+        // Email form methods
+        showEmailForm() {
+            this.emailForm.classList.add('show');
+            // Focus on the name field
+            setTimeout(() => {
+                const nameInput = this.emailForm.querySelector('#nexus-email-name');
+                if (nameInput) nameInput.focus();
+            }, 300);
+        }
+
+        hideEmailForm() {
+            this.emailForm.classList.remove('show');
+            // Reset form
+            const form = this.emailForm.querySelector('#nexus-email-form');
+            if (form) {
+                form.reset();
+                this.resetEmailFormState();
+            }
+        }
+
+        resetEmailFormState() {
+            const loading = this.emailForm.querySelector('.nexus-email-form-loading');
+            const success = this.emailForm.querySelector('.nexus-email-form-success');
+            const error = this.emailForm.querySelector('.nexus-email-form-error');
+            const submitBtn = this.emailForm.querySelector('button[type="submit"]');
+            const cancelBtn = this.emailForm.querySelector('.secondary');
+
+            if (loading) loading.classList.remove('show');
+            if (success) success.classList.remove('show');
+            if (error) error.classList.remove('show');
+            if (submitBtn) submitBtn.disabled = false;
+            if (cancelBtn) cancelBtn.disabled = false;
+        }
+
+        async handleEmailSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const name = formData.get('name').trim();
+            const email = formData.get('email').trim();
+            const message = formData.get('message').trim();
+
+            if (!name || !email || !message) {
+                this.showEmailError('Please fill in all required fields.');
+                return;
+            }
+
+            const loading = this.emailForm.querySelector('.nexus-email-form-loading');
+            const success = this.emailForm.querySelector('.nexus-email-form-success');
+            const error = this.emailForm.querySelector('.nexus-email-form-error');
+            const submitBtn = this.emailForm.querySelector('button[type="submit"]');
+            const cancelBtn = this.emailForm.querySelector('.secondary');
+
+            try {
+                // Show loading state
+                loading.classList.add('show');
+                success.classList.remove('show');
+                error.classList.remove('show');
+                submitBtn.disabled = true;
+                cancelBtn.disabled = true;
+
+                // Send email
+                await sendEmail(name, email, message);
+
+                // Show success
+                loading.classList.remove('show');
+                success.classList.add('show');
+                
+                // Auto close after success
+                setTimeout(() => {
+                    this.hideEmailForm();
+                }, 2000);
+
+            } catch (err) {
+                console.error('Email send error:', err);
+                loading.classList.remove('show');
+                error.classList.add('show');
+                submitBtn.disabled = false;
+                cancelBtn.disabled = false;
+            }
+        }
+
+        showEmailError(message) {
+            const error = this.emailForm.querySelector('.nexus-email-form-error');
+            if (error) {
+                error.textContent = `❌ ${message}`;
+                error.classList.add('show');
+                setTimeout(() => {
+                    error.classList.remove('show');
+                }, 3000);
+            }
         }
 
         // Public API methods

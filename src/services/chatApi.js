@@ -117,6 +117,42 @@ export const saveChatReaction = async (sessionId, messageId, reaction) => {
     return saveReaction(sessionId, messageId, reaction);
 };
 
+/**
+ * Send email via SendAnEmail API
+ * @param {string} name - Sender's name
+ * @param {string} email - Sender's email address
+ * @param {string} message - Email message content
+ * @returns {Promise<string>} - API response (text/plain)
+ */
+export const sendEmail = async (name, email, message) => {
+    try {
+        const requestPayload = {
+            Name: name,
+            ContactPersonEmail: email,
+            Message: message
+        };
+
+        const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/SendAnEmail/SendMail', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': 'application/json',
+            },
+            body: JSON.stringify(requestPayload),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.text(); // API returns text/plain
+        return data;
+    } catch (error) {
+        console.error('Error sending email:', error);
+        throw new Error('Failed to send email. Please try again.');
+    }
+};
+
 // Deprecated function - kept for backward compatibility
 export const getImprovedChatSession = async (sessionId) => {
     console.warn('getImprovedChatSession is deprecated. Session info is now included in chat responses.');

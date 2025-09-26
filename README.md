@@ -22,7 +22,7 @@ Add this to any website before the closing `</body>` tag:
 
 - 🤖 **Advanced AI**: Integrated with Nexus AI v3 API for intelligent responses
 - 💡 **Smart Suggestions**: AI provides follow-up questions and topic suggestions
-- 👍 **Interactive Reactions**: Like/dislike functionality with visual feedback
+- 👍 **Smart Reactions**: Context-aware like/dislike system that appears only for recent responses
 - 🌐 **Universal**: Works on ANY website - WordPress, Shopify, React, Vue, vanilla HTML
 - 📱 **Mobile Optimized**: Perfect responsive experience on all devices
 - ⚡ **Lightweight**: ~30KB minified, no dependencies
@@ -87,8 +87,11 @@ npm run dev
 - **Topic Suggestions**: Smart topic tags for deeper exploration
 - **Click to Chat**: Users can click suggestions to instantly ask questions
 
-### 👍 Interactive Reactions
+### 👍 Smart Reaction System
+- **Contextual Display**: Reactions only appear for the most recent AI response
 - **Like/Dislike System**: Users can rate AI responses with visual feedback
+- **Smart Hiding**: Reactions automatically hide when user sends a new message
+- **Persistent Feedback**: If user reacts, the reaction stays visible until next message
 - **Color Feedback**: Green for likes, red for dislikes with smooth animations  
 - **Toggle Functionality**: Click the same reaction twice to remove it
 - **Analytics Ready**: All reactions are tracked for improvement insights

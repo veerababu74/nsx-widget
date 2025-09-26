@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction } from '../services/chatApi';
+import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction, sendEmail, getClinicSettings } from '../services/chatApi';
 import './Chatbot.css';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm your AI assistant with enhanced capabilities. I can provide follow-up questions and topic suggestions to help guide our conversation. How can I help you today?",
+      text: "Hi! Ask me about our services, fees, or how to get started.",
       sender: 'bot',
       timestamp: new Date()
     }
@@ -14,6 +14,11 @@ const Chatbot = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [lastBotMessageId, setLastBotMessageId] = useState(null); // Track the last bot message ID
+  const [hasUserReacted, setHasUserReacted] = useState(false); // Track if user has reacted to current message
+  const [privacyAgreed, setPrivacyAgreed] = useState(false); // Track privacy agreement
+  const [showEmailForm, setShowEmailForm] = useState(false); // Track email form visibility
+  const [clinicSettings, setClinicSettings] = useState(null); // Store clinic settings
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -24,7 +29,41 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Load clinic settings on component mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await getClinicSettings();
+        setClinicSettings(settings);
+        console.log('Clinic settings loaded:', settings);
+      } catch (error) {
+        console.error('Failed to load clinic settings:', error);
+        // Set default settings if loading fails
+        setClinicSettings({
+          ClinicName: "Deepak Pain Clinic",
+          BrandColour: "#667eea",
+          LogoUrl: "",
+          PrivacyNoticeUrl: "",
+          RetentionDays: "30",
+          HandOffEmails: "",
+          BookNowUrl: "",
+          BookNowLabel: "Book now",
+          BookNowShow: "true",
+          SendAnEmailLabel: "Send an email",
+          SendAnEmailShow: "true"
+        });
+      }
+    };
+    
+    loadSettings();
+  }, []);
+
   const handleSendMessage = async () => {
+    if (!privacyAgreed) {
+      alert('Please agree to the privacy notice first.');
+      return;
+    }
+    
     if (!inputMessage.trim() || isLoading) return;
 
     const userMessage = {
@@ -37,6 +76,8 @@ const Chatbot = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
+    // Reset reaction state when user sends a new message
+    setHasUserReacted(false);
 
     try {
       const response = await fetchImprovedChatResponse(inputMessage);
@@ -55,6 +96,8 @@ const Chatbot = () => {
       };
 
       setMessages(prev => [...prev, botMessage]);
+      // Update the last bot message ID
+      setLastBotMessageId(botMessage.id);
     } catch (error) {
       const errorMessage = {
         id: Date.now() + 1,
@@ -82,11 +125,14 @@ const Chatbot = () => {
       setMessages([
         {
           id: 1,
-          text: "Hello! I'm your AI assistant with enhanced capabilities. I can provide follow-up questions and topic suggestions to help guide our conversation. How can I help you today?",
+          text: "Hi! Ask me about our services, fees, or how to get started.",
           sender: 'bot',
           timestamp: new Date()
         }
       ]);
+      // Reset reaction states
+      setLastBotMessageId(null);
+      setHasUserReacted(false);
     } catch (error) {
       console.error('Error clearing chat:', error);
     }
@@ -111,6 +157,9 @@ const Chatbot = () => {
           ? { ...message, userReaction: newReaction }
           : message
       ));
+      
+      // Mark that user has reacted
+      setHasUserReacted(true);
       
       // Save reaction to backend
       await saveReaction(sessionId, messageId, newReaction);
@@ -147,6 +196,43 @@ const Chatbot = () => {
     }, 100);
   };
 
+  // Privacy agreement handler
+  const handlePrivacyAgreement = () => {
+    setPrivacyAgreed(true);
+  };
+
+  // Email form handlers
+  const handleShowEmailForm = () => {
+    setShowEmailForm(true);
+  };
+
+  const handleHideEmailForm = () => {
+    setShowEmailForm(false);
+  };
+
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const name = formData.get('name')?.trim();
+    const email = formData.get('email')?.trim();
+    const message = formData.get('message')?.trim();
+
+    if (!name || !email || !message) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    try {
+      await sendEmail(name, email, message);
+      alert('Email sent successfully! We\'ll get back to you soon.');
+      handleHideEmailForm();
+    } catch (error) {
+      console.error('Email send error:', error);
+      alert('Failed to send email. Please try again.');
+    }
+  };
+
   return (
     <>
       {/* Chat Toggle Button */}
@@ -159,13 +245,28 @@ const Chatbot = () => {
       </button>
 
       {/* Chat Window */}
-      <div className={`chatbot-container ${isOpen ? 'open' : ''}`}>
+      <div className={`chatbot-container ${isOpen ? 'open' : ''} ${!privacyAgreed ? 'privacy-mode' : ''}`}>
         <div className="chatbot-header">
           <div className="header-info">
-            <div className="bot-avatar">🤖</div>
+            <div className="bot-avatar">
+              {clinicSettings?.LogoUrl ? (
+                <img 
+                  src={clinicSettings.LogoUrl} 
+                  alt="Clinic Logo" 
+                  style={{
+                    width: '100%', 
+                    height: '100%', 
+                    borderRadius: '50%', 
+                    objectFit: 'cover'
+                  }} 
+                />
+              ) : (
+                '🤖'
+              )}
+            </div>
             <div>
-              <h3>Nexus AI Assistant</h3>
-              <span className="status">Online</span>
+              <h3>{clinicSettings?.ClinicName || 'Deepak Pain Clinic'}</h3>
+              <span className="status">Educational only</span>
             </div>
           </div>
           <div className="header-actions">
@@ -177,6 +278,41 @@ const Chatbot = () => {
             </button>
           </div>
         </div>
+
+        {/* Privacy Notice */}
+        {!privacyAgreed && (
+          <div className="privacy-notice">
+            <p>I'm an educational assistant. I don't provide medical advice or diagnosis.</p>
+            <p>
+              By continuing, you consent to educational responses and lead capture. See our{' '}
+              {clinicSettings?.PrivacyNoticeUrl ? (
+                <a href={clinicSettings.PrivacyNoticeUrl} target="_blank" rel="noopener noreferrer">
+                  Privacy Notice
+                </a>
+              ) : (
+                <a 
+                  href="#" 
+                  onClick={() => alert('Privacy Notice: We collect basic information to improve our services.')}
+                >
+                  Privacy Notice
+                </a>
+              )}
+              .
+            </p>
+            <div className="privacy-agree">
+              <label>
+                <input type="checkbox" id="privacy-checkbox" />
+                I agree
+              </label>
+              <button 
+                className="agree-btn" 
+                onClick={handlePrivacyAgreement}
+              >
+                I agree
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="chatbot-messages">
           {messages.map((message) => (
@@ -224,7 +360,12 @@ const Chatbot = () => {
                   {formatTime(message.timestamp)}
                 </div>
                 
-                {message.sender === 'bot' && message.message_id && !message.isError && (
+                {/* Show reactions only for the last bot message, and only show them if:
+                    1. User hasn't reacted yet, OR 
+                    2. User has reacted and this is the message they reacted to */}
+                {message.sender === 'bot' && message.message_id && !message.isError && 
+                 message.id === lastBotMessageId && 
+                 (!hasUserReacted || (hasUserReacted && message.userReaction !== null)) && (
                   <div className="reaction-buttons">
                     <button
                       className={`reaction-btn like ${message.userReaction === true ? 'active liked' : ''}`}
@@ -281,6 +422,68 @@ const Chatbot = () => {
             </button>
           </div>
         </div>
+
+        {/* Action Buttons */}
+        <div className="action-buttons">
+          {clinicSettings?.BookNowShow === 'true' && (
+            <button 
+              className="action-btn" 
+              onClick={() => {
+                if (clinicSettings?.BookNowUrl) {
+                  window.open(clinicSettings.BookNowUrl, '_blank');
+                } else {
+                  alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.');
+                }
+              }}
+            >
+              {clinicSettings?.BookNowLabel || 'Book now'}
+            </button>
+          )}
+          {clinicSettings?.SendAnEmailShow === 'true' && (
+            <button 
+              className="action-btn secondary" 
+              onClick={handleShowEmailForm}
+            >
+              {clinicSettings?.SendAnEmailLabel || 'Send an email'}
+            </button>
+          )}
+        </div>
+
+        {/* Email Form Modal */}
+        {showEmailForm && (
+          <div className="email-form-overlay" onClick={(e) => e.target === e.currentTarget && handleHideEmailForm()}>
+            <div className="email-form">
+              <h3>Send us an Email</h3>
+              <form onSubmit={handleEmailSubmit}>
+                <div className="email-form-group">
+                  <label htmlFor="email-name">Your Name*</label>
+                  <input type="text" id="email-name" name="name" required />
+                </div>
+                <div className="email-form-group">
+                  <label htmlFor="email-address">Your Email*</label>
+                  <input type="email" id="email-address" name="email" required />
+                </div>
+                <div className="email-form-group">
+                  <label htmlFor="email-message">Message*</label>
+                  <textarea 
+                    id="email-message" 
+                    name="message" 
+                    placeholder="Please tell us how we can help you..." 
+                    required
+                  />
+                </div>
+                <div className="email-form-buttons">
+                  <button type="button" className="email-form-btn secondary" onClick={handleHideEmailForm}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="email-form-btn primary">
+                    Send Email
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
