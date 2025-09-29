@@ -1,3 +1,8 @@
+:root {
+  --nexus-brand-color: RGB(173, 216, 230);
+  --nexus-brand-gradient: linear-gradient(135deg, var(--nexus-brand-color), #764ba2);
+}
+
 .chat-toggle {
   position: fixed;
   bottom: 20px;
@@ -5,7 +10,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--nexus-brand-gradient);
   border: none;
   color: white;
   font-size: 24px;

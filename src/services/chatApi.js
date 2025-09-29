@@ -118,6 +118,31 @@ export const saveChatReaction = async (sessionId, messageId, reaction) => {
 };
 
 /**
+ * Get clinic settings from the Settings API
+ * @returns {Promise<Object>} - Clinic settings object
+ */
+export const getClinicSettings = async () => {
+    try {
+        const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/Settings/Get', {
+            method: 'GET',
+            headers: {
+                'accept': 'text/plain',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching clinic settings:', error);
+        throw new Error('Failed to load clinic settings. Please try again.');
+    }
+};
+
+/**
  * Send email via SendAnEmail API
  * @param {string} name - Sender's name
  * @param {string} email - Sender's email address

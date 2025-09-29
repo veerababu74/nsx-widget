@@ -16,11 +16,16 @@
         theme: 'default', // default, dark, custom
         autoOpen: false,
         welcomeMessage: "Hi! Ask me about our services, fees, or how to get started.",
-        clinicName: "Deepak Pain Clinic",
+        clinicName: "Clinic Name",
+        logoUrl: "",
         privacyNoticeText: "I'm an educational assistant. I don't provide medical advice or diagnosis.",
-        privacyNoticeLink: "Privacy Notice",
-        bookNowText: "Book now",
-        sendEmailText: "Send an email"
+        privacyNoticeUrl: "",
+        bookNowText: "book now",
+        bookNowUrl: "",
+        bookNowShow: true,
+        sendEmailText: "Send an email", 
+        sendEmailShow: true,
+        brandColour: "RGB(173, 216, 230)"
     };
 
     // Generate unique session ID
@@ -144,6 +149,28 @@
         }
     }
 
+    // Get clinic settings from Settings API
+    async function getClinicSettings() {
+        try {
+            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/Settings/Get', {
+                method: 'GET',
+                headers: {
+                    'accept': 'text/plain',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching clinic settings:', error);
+            throw new Error('Failed to load clinic settings. Please try again.');
+        }
+    }
+
     // Backward compatibility alias
     async function saveChatReaction(sessionId, messageId, reaction) {
         return saveReaction(sessionId, messageId, reaction);
@@ -166,13 +193,44 @@
             this.container = null;
             this.privacyAgreed = false;
             
-            this.init();
+            // Initialize asynchronously
+            this.init().catch(error => {
+                console.error('Failed to initialize chatbot widget:', error);
+                // Fallback to default initialization
+                this.createStyles();
+                this.createWidget();
+                this.attachEventListeners();
+            });
         }
 
-        init() {
+        async init() {
+            await this.loadClinicSettings();
             this.createStyles();
             this.createWidget();
             this.attachEventListeners();
+        }
+
+        async loadClinicSettings() {
+            try {
+                const settings = await getClinicSettings();
+                // Update config with API settings
+                this.config = {
+                    ...this.config,
+                    clinicName: settings.ClinicName || this.config.clinicName,
+                    logoUrl: settings.LogoUrl || '',
+                    privacyNoticeUrl: settings.PrivacyNoticeUrl || '',
+                    bookNowUrl: settings.BookNowUrl || '',
+                    bookNowText: settings.BookNowLabel || this.config.bookNowText,
+                    bookNowShow: settings.BookNowShow === 'True',
+                    sendEmailText: settings.SendAnEmailLabel || this.config.sendEmailText,
+                    sendEmailShow: settings.SendAnEmailShow === 'True',
+                    brandColour: settings.BrandColour || '#667eea'
+                };
+                console.log('Widget clinic settings loaded:', settings);
+            } catch (error) {
+                console.error('Failed to load clinic settings for widget:', error);
+                // Continue with default settings
+            }
         }
 
         createStyles() {
@@ -182,6 +240,9 @@
         }
 
         getWidgetStyles() {
+            const brandColor = this.config.brandColour || 'RGB(173, 216, 230)';
+            const gradientColor = `linear-gradient(135deg, ${brandColor}, #764ba2 100%)`;
+            
             return `
                 .nexus-chatbot-widget {
                     position: fixed;
@@ -193,7 +254,7 @@
                     width: 60px;
                     height: 60px;
                     border-radius: 50%;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: ${gradientColor};
                     border: none;
                     color: white;
                     font-size: 24px;
@@ -245,7 +306,7 @@
                 }
                 
                 .nexus-chatbot-header {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: ${gradientColor};
                     color: white;
                     padding: 16px 20px;
                     display: flex;
@@ -357,7 +418,7 @@
                 }
                 
                 .nexus-message.user .nexus-message-bubble {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: ${gradientColor};
                     color: white;
                     border-bottom-right-radius: 6px;
                 }
@@ -447,7 +508,7 @@
                 
                 .nexus-input-container textarea:focus {
                     outline: none;
-                    border-color: #667eea;
+                    border-color: ${brandColor};
                 }
                 
                 .nexus-input-container textarea:disabled {
@@ -460,7 +521,7 @@
                     height: 44px;
                     border-radius: 50%;
                     border: none;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: ${gradientColor};
                     color: white;
                     cursor: pointer;
                     transition: all 0.2s;
@@ -789,7 +850,7 @@
 
                 .nexus-action-btn {
                     flex: 1;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: ${gradientColor};
                     color: white;
                     border: none;
                     padding: 12px 16px;
@@ -894,7 +955,7 @@
                 .nexus-email-form-group input:focus,
                 .nexus-email-form-group textarea:focus {
                     outline: none;
-                    border-color: #667eea;
+                    border-color: ${brandColor};
                     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
                 }
 
@@ -922,7 +983,7 @@
                 }
 
                 .nexus-email-form-btn.primary {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: ${gradientColor};
                     color: white;
                 }
 
@@ -965,7 +1026,7 @@
                     width: 16px;
                     height: 16px;
                     border: 2px solid #f3f3f3;
-                    border-top: 2px solid #667eea;
+                    border-top: 2px solid ${brandColor};
                     border-radius: 50%;
                     animation: nexus-spin 1s linear infinite;
                 }
@@ -1106,9 +1167,13 @@
         createHeader() {
             const header = document.createElement('div');
             header.className = 'nexus-chatbot-header';
+            const logoHtml = this.config.logoUrl 
+                ? `<img src="${this.config.logoUrl}" alt="Clinic Logo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`
+                : '🤖';
+            
             header.innerHTML = `
                 <div class="nexus-header-info">
-                    <div class="nexus-bot-avatar">🤖</div>
+                    <div class="nexus-bot-avatar">${logoHtml}</div>
                     <div>
                         <h3>${this.config.clinicName}</h3>
                         <span class="nexus-status">Educational only</span>
@@ -1137,9 +1202,13 @@
         createPrivacyNotice() {
             const privacyNotice = document.createElement('div');
             privacyNotice.className = 'nexus-privacy-notice';
+            const privacyLinkHtml = this.config.privacyNoticeUrl 
+                ? `<a href="${this.config.privacyNoticeUrl}" target="_blank" rel="noopener noreferrer">Privacy Notice</a>`
+                : `<a href="#" onclick="alert('Privacy Notice: We collect basic information to improve our services.')">Privacy Notice</a>`;
+            
             privacyNotice.innerHTML = `
                 <p>${this.config.privacyNoticeText}</p>
-                <p>By continuing, you consent to educational responses and lead capture. See our <a href="#" onclick="alert('Privacy Notice: We collect basic information to improve our services.')">Privacy Notice</a>.</p>
+                <p>By continuing, you consent to educational responses and lead capture. See our ${privacyLinkHtml}.</p>
                 <div class="nexus-privacy-agree">
                     <input type="checkbox" id="nexus-privacy-checkbox">
                     <label for="nexus-privacy-checkbox">I agree</label>
@@ -1152,14 +1221,32 @@
         createActionButtons() {
             const actionButtons = document.createElement('div');
             actionButtons.className = 'nexus-action-buttons';
-            actionButtons.innerHTML = `
-                <button class="nexus-action-btn" onclick="alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.')">
-                    ${this.config.bookNowText}
-                </button>
-                <button class="nexus-action-btn secondary" onclick="window.nexusChatbot.showEmailForm()">
-                    ${this.config.sendEmailText}
-                </button>
-            `;
+            
+            let buttonsHtml = '';
+            
+            // Book Now button
+            if (this.config.bookNowShow) {
+                const bookNowAction = this.config.bookNowUrl 
+                    ? `window.open('${this.config.bookNowUrl}', '_blank')`
+                    : `alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.')`;
+                
+                buttonsHtml += `
+                    <button class="nexus-action-btn" onclick="${bookNowAction}">
+                        ${this.config.bookNowText}
+                    </button>
+                `;
+            }
+            
+            // Send Email button
+            if (this.config.sendEmailShow) {
+                buttonsHtml += `
+                    <button class="nexus-action-btn secondary" onclick="window.nexusChatbot.showEmailForm()">
+                        ${this.config.sendEmailText}
+                    </button>
+                `;
+            }
+            
+            actionButtons.innerHTML = buttonsHtml;
             return actionButtons;
         }
 

@@ -36,22 +36,30 @@ const Chatbot = () => {
         const settings = await getClinicSettings();
         setClinicSettings(settings);
         console.log('Clinic settings loaded:', settings);
+        
+        // Apply brand color to CSS custom properties
+        if (settings.BrandColour) {
+          document.documentElement.style.setProperty('--nexus-brand-color', settings.BrandColour);
+        }
       } catch (error) {
         console.error('Failed to load clinic settings:', error);
         // Set default settings if loading fails
         setClinicSettings({
-          ClinicName: "Deepak Pain Clinic",
-          BrandColour: "#667eea",
+          ClinicName: "Clinic Name",
+          BrandColour: "RGB(173, 216, 230)",
           LogoUrl: "",
           PrivacyNoticeUrl: "",
           RetentionDays: "30",
           HandOffEmails: "",
           BookNowUrl: "",
-          BookNowLabel: "Book now",
-          BookNowShow: "true",
+          BookNowLabel: "book now",
+          BookNowShow: "True",
           SendAnEmailLabel: "Send an email",
-          SendAnEmailShow: "true"
+          SendAnEmailShow: "True"
         });
+        
+        // Apply default brand color
+        document.documentElement.style.setProperty('--nexus-brand-color', 'RGB(173, 216, 230)');
       }
     };
     
@@ -265,7 +273,7 @@ const Chatbot = () => {
               )}
             </div>
             <div>
-              <h3>{clinicSettings?.ClinicName || 'Deepak Pain Clinic'}</h3>
+              <h3>{clinicSettings?.ClinicName || 'Clinic Name'}</h3>
               <span className="status">Educational only</span>
             </div>
           </div>
@@ -425,7 +433,7 @@ const Chatbot = () => {
 
         {/* Action Buttons */}
         <div className="action-buttons">
-          {clinicSettings?.BookNowShow === 'true' && (
+          {clinicSettings?.BookNowShow === 'True' && (
             <button 
               className="action-btn" 
               onClick={() => {
@@ -436,10 +444,10 @@ const Chatbot = () => {
                 }
               }}
             >
-              {clinicSettings?.BookNowLabel || 'Book now'}
+              {clinicSettings?.BookNowLabel || 'book now'}
             </button>
           )}
-          {clinicSettings?.SendAnEmailShow === 'true' && (
+          {clinicSettings?.SendAnEmailShow === 'True' && (
             <button 
               className="action-btn secondary" 
               onClick={handleShowEmailForm}
