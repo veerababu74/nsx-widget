@@ -171,6 +171,28 @@
         }
     }
 
+    // Get starter questions from StarterQuestions API
+    async function getStarterQuestions() {
+        try {
+            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/StarterQuestions/Get', {
+                method: 'GET',
+                headers: {
+                    'accept': 'text/plain',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching starter questions:', error);
+            throw new Error('Failed to load starter questions. Please try again.');
+        }
+    }
+
     // Backward compatibility alias
     async function saveChatReaction(sessionId, messageId, reaction) {
         return saveReaction(sessionId, messageId, reaction);
@@ -192,6 +214,8 @@
             this.isOpen = this.config.autoOpen;
             this.container = null;
             this.privacyAgreed = false;
+            this.starterQuestions = null;
+            this.showStarterQuestions = true;
             
             // Initialize asynchronously
             this.init().catch(error => {
@@ -205,6 +229,7 @@
 
         async init() {
             await this.loadClinicSettings();
+            await this.loadStarterQuestions();
             this.createStyles();
             this.createWidget();
             this.attachEventListeners();
@@ -230,6 +255,22 @@
             } catch (error) {
                 console.error('Failed to load clinic settings for widget:', error);
                 // Continue with default settings
+            }
+        }
+
+        async loadStarterQuestions() {
+            try {
+                const questions = await getStarterQuestions();
+                this.starterQuestions = questions;
+                console.log('Widget starter questions loaded:', questions);
+            } catch (error) {
+                console.error('Failed to load starter questions for widget:', error);
+                // Set fallback starter questions for testing
+                this.starterQuestions = {
+                    q1: "Who is this program for?",
+                    q2: "Fees & availability",
+                    q3: "How to get started?"
+                };
             }
         }
 
@@ -632,39 +673,43 @@
                 /* Reaction buttons styling */
                 .nexus-reaction-buttons {
                     display: flex;
-                    gap: 8px;
-                    margin-top: 8px;
+                    gap: 12px;
+                    margin: 10px 0 6px 0;
                     justify-content: flex-start;
+                    align-items: center;
                 }
                 
                 .nexus-reaction-btn {
                     background: none;
-                    border: none;
+                    border: 1px solid #e2e8f0;
                     border-radius: 50%;
-                    width: 32px;
-                    height: 32px;
+                    width: 36px;
+                    height: 36px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
                     font-size: 16px;
-                    transition: all 0.2s ease;
-                    background-color: rgba(0, 0, 0, 0.05);
-                    opacity: 0.6;
+                    transition: all 0.3s ease;
+                    background-color: white;
+                    opacity: 0.8;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
                 }
                 
                 .nexus-reaction-btn:hover {
                     opacity: 1;
                     transform: scale(1.1);
-                    background-color: rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
                 }
                 
                 .nexus-reaction-btn.nexus-like:hover {
-                    background-color: rgba(34, 197, 94, 0.2);
+                    background-color: rgba(34, 197, 94, 0.1);
+                    border-color: #22c55e;
                 }
                 
                 .nexus-reaction-btn.nexus-dislike:hover {
-                    background-color: rgba(239, 68, 68, 0.2);
+                    background-color: rgba(239, 68, 68, 0.1);
+                    border-color: #ef4444;
                 }
                 
                 .nexus-reaction-btn.active {
@@ -675,19 +720,34 @@
                 .nexus-reaction-btn.nexus-like.active,
                 .nexus-reaction-btn.liked {
                     background-color: #22c55e !important;
+                    border-color: #16a34a !important;
                     color: white !important;
-                    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+                    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
                 }
                 
                 .nexus-reaction-btn.nexus-dislike.active,
                 .nexus-reaction-btn.disliked {
                     background-color: #ef4444 !important;
+                    border-color: #dc2626 !important;
                     color: white !important;
-                    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+                    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
                 }
                 
                 .nexus-reaction-btn:active {
                     transform: scale(0.95);
+                }
+
+                .nexus-reaction-btn:disabled {
+                    opacity: 0.6;
+                    cursor: default;
+                    transform: none !important;
+                }
+
+                .nexus-reaction-btn:disabled:hover {
+                    transform: none !important;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+                    background-color: inherit !important;
+                    border-color: inherit !important;
                 }
 
                 /* Suggestions styling */
@@ -1059,6 +1119,81 @@
                 .nexus-email-form-error.show {
                     display: block;
                 }
+
+                /* Starter Questions */
+                .nexus-starter-questions {
+                    padding: 8px 16px;
+                    margin: 12px 16px 12px auto;
+                    max-width: 300px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-end;
+                }
+
+                .nexus-starter-questions-title {
+                    font-size: 13px;
+                    font-weight: 500;
+                    color: #6b7280;
+                    margin-bottom: 8px;
+                    text-align: right;
+                }
+
+                .nexus-starter-questions-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    align-items: flex-end;
+                    width: 100%;
+                }
+
+                .nexus-starter-question-btn {
+                    padding: 8px 14px;
+                    background: white;
+                    border: 1px solid #d1d5db;
+                    border-radius: 18px;
+                    color: #374151;
+                    font-size: 13px;
+                    font-weight: 400;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                    max-width: fit-content;
+                    white-space: nowrap;
+                }
+
+                .nexus-starter-question-btn:hover:not(:disabled) {
+                    background: #f9fafb;
+                    border-color: ${brandColor};
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+
+                .nexus-starter-question-btn:active {
+                    transform: translateY(0);
+                }
+
+                .nexus-starter-question-btn:disabled {
+                    background: #f9fafb;
+                    color: #9ca3af;
+                    cursor: not-allowed;
+                    opacity: 0.6;
+                    transform: none;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                }
+
+                .nexus-privacy-notice-starter {
+                    margin-top: 8px;
+                    padding: 6px 12px;
+                    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+                    border: 1px solid #f6e05e;
+                    border-radius: 12px;
+                    color: #744210;
+                    font-size: 11px;
+                    text-align: center;
+                    font-weight: 400;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                }
             `;
         }
 
@@ -1176,7 +1311,7 @@
                     <div class="nexus-bot-avatar">${logoHtml}</div>
                     <div>
                         <h3>${this.config.clinicName}</h3>
-                        <span class="nexus-status">Educational only</span>
+                        <span class="nexus-status">Educational assistant only</span>
                     </div>
                 </div>
                 <div class="nexus-header-actions">
@@ -1314,10 +1449,11 @@
                 }
             });
             
-            // Auto-resize textarea
+            // Auto-resize textarea and update input state
             this.inputTextarea.addEventListener('input', () => {
                 this.inputTextarea.style.height = 'auto';
                 this.inputTextarea.style.height = this.inputTextarea.scrollHeight + 'px';
+                this.updateInputState(); // Update button state when text changes
             });
             
             // Window resize event to adjust position
@@ -1375,6 +1511,9 @@
             this.chatContainer.classList.remove('privacy-mode');
             this.privacyNotice.style.display = 'none';
             
+            // Re-render messages to enable starter question buttons
+            this.renderMessages();
+            
             // Focus on input after agreeing to privacy
             if (this.inputTextarea) {
                 this.inputTextarea.focus();
@@ -1392,6 +1531,8 @@
                         timestamp: new Date()
                     }
                 ];
+                // Show starter questions again after clearing chat
+                this.showStarterQuestions = true;
                 this.renderMessages();
             } catch (error) {
                 console.error('Error clearing chat:', error);
@@ -1406,6 +1547,9 @@
 
             const message = this.inputTextarea.value.trim();
             if (!message || this.isLoading) return;
+
+            // Hide starter questions when user sends a message
+            this.showStarterQuestions = false;
 
             // Add user message
             const userMessage = {
@@ -1425,6 +1569,64 @@
 
             try {
                 const response = await fetchChatResponse(message);
+                
+                const botMessage = {
+                    id: Date.now() + 1,
+                    text: response.response || response.message || 'Sorry, I could not process your request.',
+                    sender: 'bot',
+                    timestamp: new Date(),
+                    metadata: response,
+                    message_id: response.message_id,
+                    session_id: response.session_id || CHATBOT_CONFIG.sessionId,
+                    userReaction: null, // Track user's reaction: null, true (like), false (dislike)
+                    followUpQuestion: response.follow_up_question,
+                    suggestedTopics: response.suggested_topics
+                };
+
+                this.messages.push(botMessage);
+            } catch (error) {
+                const errorMessage = {
+                    id: Date.now() + 1,
+                    text: 'Sorry, I encountered an error. Please try again.',
+                    sender: 'bot',
+                    timestamp: new Date(),
+                    isError: true
+                };
+                this.messages.push(errorMessage);
+            } finally {
+                this.isLoading = false;
+                this.renderMessages();
+                this.updateInputState();
+            }
+        }
+
+        async sendStarterQuestion(questionText) {
+            if (!this.privacyAgreed) {
+                alert('Please agree to the privacy notice first.');
+                return;
+            }
+
+            if (this.isLoading) return;
+
+            // Hide starter questions when user clicks on one
+            this.showStarterQuestions = false;
+
+            // Add user message
+            const userMessage = {
+                id: Date.now(),
+                text: questionText,
+                sender: 'user',
+                timestamp: new Date()
+            };
+
+            this.messages.push(userMessage);
+            this.isLoading = true;
+            
+            this.renderMessages();
+            this.updateInputState();
+
+            try {
+                const response = await fetchChatResponse(questionText);
                 
                 const botMessage = {
                     id: Date.now() + 1,
@@ -1487,6 +1689,35 @@
                 
                 // Check if this is the latest bot message for showing reactions and suggestions
                 const isLatestBotMessage = (message.sender === 'bot' && index === latestBotMessageIndex);
+                const hasReaction = (message.userReaction !== null && message.userReaction !== undefined);
+
+                // Add reaction buttons for:
+                // 1. Latest bot message (to allow new reactions)
+                // 2. Any message that already has a reaction (to show existing reactions)
+                if (message.sender === 'bot' && message.message_id && !message.isError && (isLatestBotMessage || hasReaction)) {
+                    const reactionsEl = document.createElement('div');
+                    reactionsEl.className = 'nexus-reaction-buttons';
+                    
+                    const likeBtn = document.createElement('button');
+                    likeBtn.className = `nexus-reaction-btn nexus-like ${message.userReaction === true ? 'active liked' : ''}`;
+                    likeBtn.innerHTML = '👍';
+                    likeBtn.title = 'Like this response';
+                    likeBtn.onclick = () => this.handleReaction(message.id, message.session_id, true);
+                    // Disable interaction for non-latest messages that already have reactions
+                    likeBtn.disabled = !isLatestBotMessage && hasReaction;
+                    
+                    const dislikeBtn = document.createElement('button');
+                    dislikeBtn.className = `nexus-reaction-btn nexus-dislike ${message.userReaction === false ? 'active disliked' : ''}`;
+                    dislikeBtn.innerHTML = '👎';
+                    dislikeBtn.title = 'Dislike this response';
+                    dislikeBtn.onclick = () => this.handleReaction(message.id, message.session_id, false);
+                    // Disable interaction for non-latest messages that already have reactions
+                    dislikeBtn.disabled = !isLatestBotMessage && hasReaction;
+                    
+                    reactionsEl.appendChild(likeBtn);
+                    reactionsEl.appendChild(dislikeBtn);
+                    contentEl.appendChild(reactionsEl);
+                }
 
                 // Add follow-up question only for the latest bot message
                 if (isLatestBotMessage && message.followUpQuestion && !message.isError) {
@@ -1539,28 +1770,6 @@
                 
                 contentEl.appendChild(timeEl);
                 
-                // Add reaction buttons only for the latest bot message with message_id
-                if (isLatestBotMessage && message.message_id && !message.isError) {
-                    const reactionsEl = document.createElement('div');
-                    reactionsEl.className = 'nexus-reaction-buttons';
-                    
-                    const likeBtn = document.createElement('button');
-                    likeBtn.className = `nexus-reaction-btn nexus-like ${message.userReaction === true ? 'active liked' : ''}`;
-                    likeBtn.innerHTML = '👍';
-                    likeBtn.title = 'Like this response';
-                    likeBtn.onclick = () => this.handleReaction(message.id, message.session_id, true);
-                    
-                    const dislikeBtn = document.createElement('button');
-                    dislikeBtn.className = `nexus-reaction-btn nexus-dislike ${message.userReaction === false ? 'active disliked' : ''}`;
-                    dislikeBtn.innerHTML = '👎';
-                    dislikeBtn.title = 'Dislike this response';
-                    dislikeBtn.onclick = () => this.handleReaction(message.id, message.session_id, false);
-                    
-                    reactionsEl.appendChild(likeBtn);
-                    reactionsEl.appendChild(dislikeBtn);
-                    contentEl.appendChild(reactionsEl);
-                }
-                
                 messageEl.appendChild(contentEl);
                 
                 this.messagesArea.appendChild(messageEl);
@@ -1582,6 +1791,62 @@
                     </div>
                 `;
                 this.messagesArea.appendChild(loadingEl);
+            }
+
+            // Add starter questions if they should be shown
+            if (this.showStarterQuestions && this.starterQuestions) {
+                const starterQuestionsEl = document.createElement('div');
+                starterQuestionsEl.className = 'nexus-starter-questions';
+
+                const titleEl = document.createElement('div');
+                titleEl.className = 'nexus-starter-questions-title';
+                titleEl.textContent = 'Choose a topic to get started:';
+                starterQuestionsEl.appendChild(titleEl);
+
+                const questionsListEl = document.createElement('div');
+                questionsListEl.className = 'nexus-starter-questions-list';
+
+                // Add Q1 if available
+                if (this.starterQuestions.q1) {
+                    const btn1 = document.createElement('button');
+                    btn1.className = 'nexus-starter-question-btn';
+                    btn1.textContent = this.starterQuestions.q1;
+                    btn1.disabled = this.isLoading || !this.privacyAgreed;
+                    btn1.onclick = () => this.sendStarterQuestion(this.starterQuestions.q1);
+                    questionsListEl.appendChild(btn1);
+                }
+
+                // Add Q2 if available
+                if (this.starterQuestions.q2) {
+                    const btn2 = document.createElement('button');
+                    btn2.className = 'nexus-starter-question-btn';
+                    btn2.textContent = this.starterQuestions.q2;
+                    btn2.disabled = this.isLoading || !this.privacyAgreed;
+                    btn2.onclick = () => this.sendStarterQuestion(this.starterQuestions.q2);
+                    questionsListEl.appendChild(btn2);
+                }
+
+                // Add Q3 if available
+                if (this.starterQuestions.q3) {
+                    const btn3 = document.createElement('button');
+                    btn3.className = 'nexus-starter-question-btn';
+                    btn3.textContent = this.starterQuestions.q3;
+                    btn3.disabled = this.isLoading || !this.privacyAgreed;
+                    btn3.onclick = () => this.sendStarterQuestion(this.starterQuestions.q3);
+                    questionsListEl.appendChild(btn3);
+                }
+
+                starterQuestionsEl.appendChild(questionsListEl);
+                
+                // Add privacy notice if not agreed
+                if (!this.privacyAgreed) {
+                    const privacyNoticeEl = document.createElement('div');
+                    privacyNoticeEl.className = 'nexus-privacy-notice-starter';
+                    privacyNoticeEl.textContent = 'Please agree to the privacy notice above to start chatting.';
+                    starterQuestionsEl.appendChild(privacyNoticeEl);
+                }
+                
+                this.messagesArea.appendChild(starterQuestionsEl);
             }
             
             this.scrollToBottom();

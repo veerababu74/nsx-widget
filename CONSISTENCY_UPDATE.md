@@ -27,7 +27,7 @@ I've successfully updated the React component (`Chatbot.jsx`) to match all featu
 
 ### 4. **Enhanced Header**
 - **Clinic Branding**: Changed from "Nexus AI Assistant" to "Deepak Pain Clinic"
-- **Status Indicator**: Shows "Educational only" instead of "Online"
+- **Status Indicator**: Shows "Educational assistant not medical advice" instead of "Online"
 - **Consistent Styling**: Matches standalone widget appearance
 
 ### 5. **Welcome Message**

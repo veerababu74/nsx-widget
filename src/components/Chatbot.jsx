@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction, sendEmail, getClinicSettings } from '../services/chatApi';
+import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction, sendEmail, getClinicSettings, getStarterQuestions } from '../services/chatApi';
 import './Chatbot.css';
 
 const Chatbot = () => {
@@ -15,10 +15,11 @@ const Chatbot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [lastBotMessageId, setLastBotMessageId] = useState(null); // Track the last bot message ID
-  const [hasUserReacted, setHasUserReacted] = useState(false); // Track if user has reacted to current message
   const [privacyAgreed, setPrivacyAgreed] = useState(false); // Track privacy agreement
   const [showEmailForm, setShowEmailForm] = useState(false); // Track email form visibility
   const [clinicSettings, setClinicSettings] = useState(null); // Store clinic settings
+  const [starterQuestions, setStarterQuestions] = useState(null); // Store starter questions
+  const [showStarterQuestions, setShowStarterQuestions] = useState(true); // Control starter questions visibility
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -66,6 +67,27 @@ const Chatbot = () => {
     loadSettings();
   }, []);
 
+  // Load starter questions on component mount
+  useEffect(() => {
+    const loadStarterQuestions = async () => {
+      try {
+        const questions = await getStarterQuestions();
+        setStarterQuestions(questions);
+        console.log('Starter questions loaded:', questions);
+      } catch (error) {
+        console.error('Failed to load starter questions:', error);
+        // Set fallback starter questions for testing
+        setStarterQuestions({
+          q1: "Who is this program for?",
+          q2: "Fees & availability",
+          q3: "How to get started?"
+        });
+      }
+    };
+    
+    loadStarterQuestions();
+  }, []);
+
   const handleSendMessage = async () => {
     if (!privacyAgreed) {
       alert('Please agree to the privacy notice first.');
@@ -73,6 +95,9 @@ const Chatbot = () => {
     }
     
     if (!inputMessage.trim() || isLoading) return;
+
+    // Hide starter questions when user sends a message
+    setShowStarterQuestions(false);
 
     const userMessage = {
       id: Date.now(),
@@ -84,11 +109,63 @@ const Chatbot = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
-    // Reset reaction state when user sends a new message
-    setHasUserReacted(false);
 
     try {
       const response = await fetchImprovedChatResponse(inputMessage);
+      
+      const botMessage = {
+        id: Date.now() + 1,
+        text: response.response || response.message || 'Sorry, I could not process your request.',
+        sender: 'bot',
+        timestamp: new Date(),
+        metadata: response,
+        message_id: response.message_id,
+        session_id: response.session_id || "test1234",
+        userReaction: null, // Track user's reaction: null, true (like), false (dislike)
+        followUpQuestion: response.follow_up_question,
+        suggestedTopics: response.suggested_topics
+      };
+
+      setMessages(prev => [...prev, botMessage]);
+      // Update the last bot message ID
+      setLastBotMessageId(botMessage.id);
+    } catch (error) {
+      const errorMessage = {
+        id: Date.now() + 1,
+        text: 'Sorry, I encountered an error. Please try again.',
+        sender: 'bot',
+        timestamp: new Date(),
+        isError: true
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStarterQuestionClick = async (questionText) => {
+    if (!privacyAgreed) {
+      alert('Please agree to the privacy notice first.');
+      return;
+    }
+    
+    if (isLoading) return;
+
+    // Hide starter questions when user clicks on one
+    setShowStarterQuestions(false);
+
+    const userMessage = {
+      id: Date.now(),
+      text: questionText,
+      sender: 'user',
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetchImprovedChatResponse(questionText);
       
       const botMessage = {
         id: Date.now() + 1,
@@ -138,9 +215,9 @@ const Chatbot = () => {
           timestamp: new Date()
         }
       ]);
-      // Reset reaction states
+      // Reset reaction states and show starter questions again
       setLastBotMessageId(null);
-      setHasUserReacted(false);
+      setShowStarterQuestions(true);
     } catch (error) {
       console.error('Error clearing chat:', error);
     }
@@ -165,9 +242,6 @@ const Chatbot = () => {
           ? { ...message, userReaction: newReaction }
           : message
       ));
-      
-      // Mark that user has reacted
-      setHasUserReacted(true);
       
       // Save reaction to backend
       await saveReaction(sessionId, messageId, newReaction);
@@ -274,7 +348,7 @@ const Chatbot = () => {
             </div>
             <div>
               <h3>{clinicSettings?.ClinicName || 'Clinic Name'}</h3>
-              <span className="status">Educational only</span>
+              <span className="status">Educational assistant not medical advice</span>
             </div>
           </div>
           <div className="header-actions">
@@ -329,6 +403,31 @@ const Chatbot = () => {
                 <div className={`message-bubble ${message.isError ? 'error' : ''}`}>
                   {message.text}
                 </div>
+
+                {/* Show reactions for:
+                    1. Latest bot message (to allow new reactions)
+                    2. Any message that already has a reaction (to show existing reactions) */}
+                {message.sender === 'bot' && message.message_id && !message.isError && 
+                 (message.id === lastBotMessageId || (message.userReaction !== null && message.userReaction !== undefined)) && (
+                  <div className="reaction-buttons">
+                    <button
+                      className={`reaction-btn like ${message.userReaction === true ? 'active liked' : ''}`}
+                      onClick={() => handleReaction(message.id, message.session_id, true)}
+                      title="Like this response"
+                      disabled={message.id !== lastBotMessageId && message.userReaction !== null}
+                    >
+                      👍
+                    </button>
+                    <button
+                      className={`reaction-btn dislike ${message.userReaction === false ? 'active disliked' : ''}`}
+                      onClick={() => handleReaction(message.id, message.session_id, false)}
+                      title="Dislike this response"
+                      disabled={message.id !== lastBotMessageId && message.userReaction !== null}
+                    >
+                      👎
+                    </button>
+                  </div>
+                )}
                 
                 {/* Follow-up question */}
                 {message.sender === 'bot' && message.followUpQuestion && !message.isError && (
@@ -367,30 +466,6 @@ const Chatbot = () => {
                 <div className="message-time">
                   {formatTime(message.timestamp)}
                 </div>
-                
-                {/* Show reactions only for the last bot message, and only show them if:
-                    1. User hasn't reacted yet, OR 
-                    2. User has reacted and this is the message they reacted to */}
-                {message.sender === 'bot' && message.message_id && !message.isError && 
-                 message.id === lastBotMessageId && 
-                 (!hasUserReacted || (hasUserReacted && message.userReaction !== null)) && (
-                  <div className="reaction-buttons">
-                    <button
-                      className={`reaction-btn like ${message.userReaction === true ? 'active liked' : ''}`}
-                      onClick={() => handleReaction(message.id, message.session_id, true)}
-                      title="Like this response"
-                    >
-                      👍
-                    </button>
-                    <button
-                      className={`reaction-btn dislike ${message.userReaction === false ? 'active disliked' : ''}`}
-                      onClick={() => handleReaction(message.id, message.session_id, false)}
-                      title="Dislike this response"
-                    >
-                      👎
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           ))}
@@ -410,6 +485,47 @@ const Chatbot = () => {
           )}
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Starter Questions */}
+        {showStarterQuestions && starterQuestions && (
+          <div className="starter-questions">
+            <div className="starter-questions-title">Choose a topic to get started:</div>
+            <div className="starter-questions-list">
+              {starterQuestions.q1 && (
+                <button 
+                  className="starter-question-btn"
+                  onClick={() => handleStarterQuestionClick(starterQuestions.q1)}
+                  disabled={isLoading || !privacyAgreed}
+                >
+                  <span>{starterQuestions.q1}</span>
+                </button>
+              )}
+              {starterQuestions.q2 && (
+                <button 
+                  className="starter-question-btn"
+                  onClick={() => handleStarterQuestionClick(starterQuestions.q2)}
+                  disabled={isLoading || !privacyAgreed}
+                >
+                  <span>{starterQuestions.q2}</span>
+                </button>
+              )}
+              {starterQuestions.q3 && (
+                <button 
+                  className="starter-question-btn"
+                  onClick={() => handleStarterQuestionClick(starterQuestions.q3)}
+                  disabled={isLoading || !privacyAgreed}
+                >
+                  <span>{starterQuestions.q3}</span>
+                </button>
+              )}
+            </div>
+            {!privacyAgreed && (
+              <div className="privacy-notice-starter">
+                Please agree to the privacy notice above to start chatting.
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="chatbot-input">
           <div className="input-container">
