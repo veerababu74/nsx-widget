@@ -16,7 +16,7 @@ The Nexus Chatbot Widget now supports multiple website differentiation through a
     theme: 'default',
     autoOpen: false,
     welcomeMessage: "Hello! How can I help you today?",
-    chatbotId: "your-unique-website-key" // Add your unique chatbot ID here
+    chatbotId: "335934ee-d6cf-4a80-a17e-e42071c9466a" // Default widget key - replace with your unique key
   };
 </script>
 <script src="https://your-domain.com/nexus-chatbot-widget.js"></script>
@@ -30,7 +30,7 @@ import { Chatbot } from './components/Chatbot';
 function App() {
   return (
     <div className="App">
-      <Chatbot chatbotId="your-unique-website-key" />
+      <Chatbot chatbotId="335934ee-d6cf-4a80-a17e-e42071c9466a" />
     </div>
   );
 }

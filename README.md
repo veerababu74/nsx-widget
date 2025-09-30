@@ -11,7 +11,7 @@ Add this to any website before the closing `</body>` tag:
   window.nexusChatbotConfig = {
     position: 'bottom-right',
     welcomeMessage: "Hello! I'm your AI assistant with enhanced capabilities. How can I help you today?",
-    chatbotId: "your-unique-website-key" // Optional: For multi-website differentiation
+    chatbotId: "335934ee-d6cf-4a80-a17e-e42071c9466a" // Default widget key - replace with your unique key
   };
 </script>
 <script src="https://your-domain.com/nexus-chatbot-widget.js"></script>
@@ -130,7 +130,7 @@ window.nexusChatbotConfig = {
   indexName: 'test', // Updated index name for new API
   
   // Multi-Website Support
-  chatbotId: 'your-unique-website-key', // Optional: Unique identifier for your website
+  chatbotId: '335934ee-d6cf-4a80-a17e-e42071c9466a', // Default widget key - replace with your unique key
   
   // Widget Appearance
   position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left

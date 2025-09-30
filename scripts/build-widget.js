@@ -97,6 +97,7 @@ This widget now includes:
 <script>
   window.nexusChatbotConfig = {
     position: 'bottom-right',
+    chatbotId: '335934ee-d6cf-4a80-a17e-e42071c9466a',
     autoOpen: false,
     welcomeMessage: "Hello! I'm your AI assistant with enhanced capabilities. How can I help you today?"
   };
@@ -121,6 +122,7 @@ This widget now includes:
 <script>
   const chatbot = NexusChatbot.start({
     position: 'bottom-left',
+    chatbotId: '335934ee-d6cf-4a80-a17e-e42071c9466a',
     apiBaseUrl: 'https://your-api.com',
     sessionId: 'unique-session-' + Date.now(),
     autoOpen: true
@@ -134,6 +136,7 @@ This widget now includes:
 {
   // API Settings (Updated for Enhanced Features)
   apiBaseUrl: 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net',
+  chatbotId: '335934ee-d6cf-4a80-a17e-e42071c9466a', // Required widget key for multi-website support
   sessionId: 'test1234', // Updated session ID
   indexName: 'test', // Updated index name
   
@@ -149,6 +152,11 @@ This widget now includes:
 
 ## 🎯 New Features
 
+### Multi-Website Support
+- **Unique Widget Key**: Each website gets a hardcoded chatbot ID for API differentiation
+- **Header Authentication**: Automatic x-widget-key header for secure API access
+- **Direct User Access**: No privacy policy agreement required - instant chat access
+
 ### Interactive Suggestions
 - **Follow-up Questions**: AI provides relevant follow-up questions that users can click
 - **Topic Suggestions**: AI suggests related topics for deeper exploration
@@ -160,9 +168,10 @@ This widget now includes:
 - **Instant Updates**: Real-time UI updates with backend synchronization
 
 ### Improved API Integration
-- **Nexus AI v3**: Integration with the latest API endpoint
+- **Widget-Specific Endpoints**: Updated API endpoints for StarterQuestions_Widget/Get, Settings_Widget/Get, SendAnEmail_Widget/SendMail
 - **Rich Responses**: Support for structured responses with metadata
 - **Session Management**: Enhanced session tracking and management
+- **Larger Dimensions**: Increased chatbot size (750px × 650px) for better user experience
 
 ## WordPress Integration
 
@@ -174,6 +183,7 @@ function add_nexus_chatbot() {
     <script>
         window.nexusChatbotConfig = {
             position: 'bottom-right',
+            chatbotId: '335934ee-d6cf-4a80-a17e-e42071c9466a',
             welcomeMessage: 'Welcome to <?php echo get_bloginfo('name'); ?>! How can I help?'
         };
     </script>
@@ -198,6 +208,7 @@ export default function Layout({ children }) {
     // Configure before loading
     window.nexusChatbotConfig = {
       position: 'bottom-right',
+      chatbotId: '335934ee-d6cf-4a80-a17e-e42071c9466a',
       welcomeMessage: 'Welcome to our React app!'
     };
     

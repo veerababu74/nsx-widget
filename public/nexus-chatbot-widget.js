@@ -26,7 +26,7 @@
         sendEmailText: "Send an email", 
         sendEmailShow: true,
         brandColour: "RGB(173, 216, 230)",
-        chatbotId: null // Will be set from window.nexusChatbotConfig
+        chatbotId: "335934ee-d6cf-4a80-a17e-e42071c9466a" // Default widget key, can be overridden
     };
 
     // Generate unique session ID
@@ -256,7 +256,7 @@
             this.isLoading = false;
             this.isOpen = this.config.autoOpen;
             this.container = null;
-            this.privacyAgreed = false;
+            this.privacyAgreed = true;
             this.starterQuestions = null;
             this.showStarterQuestions = true;
             
@@ -1735,11 +1735,6 @@
         }
 
         async sendMessage() {
-            if (!this.privacyAgreed) {
-                alert('Please agree to the privacy notice first.');
-                return;
-            }
-
             const message = this.inputTextarea.value.trim();
             if (!message || this.isLoading) return;
 
@@ -1796,11 +1791,6 @@
         }
 
         async sendStarterQuestion(questionText) {
-            if (!this.privacyAgreed) {
-                alert('Please agree to the privacy notice first.');
-                return;
-            }
-
             if (this.isLoading) return;
 
             // Hide starter questions when user clicks on one
@@ -2006,7 +1996,7 @@
                     const btn1 = document.createElement('button');
                     btn1.className = 'nexus-starter-question-btn';
                     btn1.textContent = this.starterQuestions.q1;
-                    btn1.disabled = this.isLoading || !this.privacyAgreed;
+                    btn1.disabled = this.isLoading;
                     btn1.onclick = () => this.sendStarterQuestion(this.starterQuestions.q1);
                     questionsListEl.appendChild(btn1);
                 }
@@ -2016,7 +2006,7 @@
                     const btn2 = document.createElement('button');
                     btn2.className = 'nexus-starter-question-btn';
                     btn2.textContent = this.starterQuestions.q2;
-                    btn2.disabled = this.isLoading || !this.privacyAgreed;
+                    btn2.disabled = this.isLoading;
                     btn2.onclick = () => this.sendStarterQuestion(this.starterQuestions.q2);
                     questionsListEl.appendChild(btn2);
                 }
@@ -2026,7 +2016,7 @@
                     const btn3 = document.createElement('button');
                     btn3.className = 'nexus-starter-question-btn';
                     btn3.textContent = this.starterQuestions.q3;
-                    btn3.disabled = this.isLoading || !this.privacyAgreed;
+                    btn3.disabled = this.isLoading;
                     btn3.onclick = () => this.sendStarterQuestion(this.starterQuestions.q3);
                     questionsListEl.appendChild(btn3);
                 }

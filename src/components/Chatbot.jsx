@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction, sendEmail, getClinicSettings, getStarterQuestions } from '../services/chatApi';
 import './Chatbot.css';
 
-const Chatbot = ({ chatbotId = null }) => {
+const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -15,7 +15,7 @@ const Chatbot = ({ chatbotId = null }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [lastBotMessageId, setLastBotMessageId] = useState(null); // Track the last bot message ID
-  const [privacyAgreed, setPrivacyAgreed] = useState(false); // Track privacy agreement
+  const [privacyAgreed, setPrivacyAgreed] = useState(true); // Skip privacy agreement
   const [showEmailForm, setShowEmailForm] = useState(false); // Track email form visibility
   const [clinicSettings, setClinicSettings] = useState(null); // Store clinic settings
   const [starterQuestions, setStarterQuestions] = useState(null); // Store starter questions
@@ -89,11 +89,6 @@ const Chatbot = ({ chatbotId = null }) => {
   }, []);
 
   const handleSendMessage = async () => {
-    if (!privacyAgreed) {
-      alert('Please agree to the privacy notice first.');
-      return;
-    }
-    
     if (!inputMessage.trim() || isLoading) return;
 
     // Hide starter questions when user sends a message
@@ -144,11 +139,6 @@ const Chatbot = ({ chatbotId = null }) => {
   };
 
   const handleStarterQuestionClick = async (questionText) => {
-    if (!privacyAgreed) {
-      alert('Please agree to the privacy notice first.');
-      return;
-    }
-    
     if (isLoading) return;
 
     // Hide starter questions when user clicks on one
