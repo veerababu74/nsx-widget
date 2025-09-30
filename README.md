@@ -10,20 +10,22 @@ Add this to any website before the closing `</body>` tag:
 <script>
   window.nexusChatbotConfig = {
     position: 'bottom-right',
-    welcomeMessage: "Hello! I'm your AI assistant with enhanced capabilities. How can I help you today?"
+    welcomeMessage: "Hello! I'm your AI assistant with enhanced capabilities. How can I help you today?",
+    chatbotId: "your-unique-website-key" // Optional: For multi-website differentiation
   };
 </script>
 <script src="https://your-domain.com/nexus-chatbot-widget.js"></script>
 ```
 
-**That's it!** Your website now has a professional AI chatbot.
+**That's it!** Your website now has a professional AI chatbot with personalized responses.
 
 ## ✨ Enhanced Features
 
 - 🤖 **Advanced AI**: Integrated with Nexus AI v3 API for intelligent responses
 - 💡 **Smart Suggestions**: AI provides follow-up questions and topic suggestions
 - 👍 **Smart Reactions**: Context-aware like/dislike system that appears only for recent responses
-- 🌐 **Universal**: Works on ANY website - WordPress, Shopify, React, Vue, vanilla HTML
+- � **Multi-Website Support**: Unique chatbot IDs for different websites with personalized responses
+- �🌐 **Universal**: Works on ANY website - WordPress, Shopify, React, Vue, vanilla HTML
 - 📱 **Mobile Optimized**: Perfect responsive experience on all devices
 - ⚡ **Lightweight**: ~30KB minified, no dependencies
 - 🎨 **Modern UI**: Beautiful gradients, animations, and hover effects
@@ -126,6 +128,9 @@ window.nexusChatbotConfig = {
   apiBaseUrl: 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net',
   sessionId: 'test1234', // Updated session ID for new API
   indexName: 'test', // Updated index name for new API
+  
+  // Multi-Website Support
+  chatbotId: 'your-unique-website-key', // Optional: Unique identifier for your website
   
   // Widget Appearance
   position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left

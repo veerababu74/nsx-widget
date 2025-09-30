@@ -25,7 +25,8 @@
         bookNowShow: true,
         sendEmailText: "Send an email", 
         sendEmailShow: true,
-        brandColour: "RGB(173, 216, 230)"
+        brandColour: "RGB(173, 216, 230)",
+        chatbotId: null // Will be set from window.nexusChatbotConfig
     };
 
     // Generate unique session ID
@@ -39,7 +40,7 @@
     }
 
     // API Functions
-    async function fetchChatResponse(message) {
+    async function fetchChatResponse(message, chatbotId = null) {
         try {
             const requestPayload = {
                 message: message,
@@ -47,12 +48,19 @@
                 index_name: CHATBOT_CONFIG.indexName
             };
 
+            const headers = {
+                'Content-Type': 'application/json',
+                'accept': 'application/json',
+            };
+
+            // Add x-widget-key header if chatbotId is provided
+            if (chatbotId) {
+                headers['x-widget-key'] = chatbotId;
+            }
+
             const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/widget/chat`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'accept': 'application/json',
-                },
+                headers: headers,
                 body: JSON.stringify(requestPayload),
             });
 
@@ -68,14 +76,21 @@
         }
     }
 
-    async function clearChatSession(sessionId = CHATBOT_CONFIG.sessionId) {
+    async function clearChatSession(sessionId = CHATBOT_CONFIG.sessionId, chatbotId = null) {
         try {
+            const headers = {
+                'Content-Type': 'application/json',
+                'accept': 'application/json',
+            };
+
+            // Add x-widget-key header if chatbotId is provided
+            if (chatbotId) {
+                headers['x-widget-key'] = chatbotId;
+            }
+
             const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/widget/session/${sessionId}/clear`, {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'accept': 'application/json',
-                },
+                headers: headers,
             });
             
             if (!response.ok) {
@@ -90,7 +105,7 @@
         }
     }
 
-    async function saveReaction(sessionId, messageId, reaction) {
+    async function saveReaction(sessionId, messageId, reaction, chatbotId = null) {
         try {
             const requestPayload = {
                 session_id: sessionId,
@@ -98,12 +113,19 @@
                 reaction: reaction
             };
 
+            const headers = {
+                'Content-Type': 'application/json',
+                'accept': 'application/json',
+            };
+
+            // Add x-widget-key header if chatbotId is provided
+            if (chatbotId) {
+                headers['x-widget-key'] = chatbotId;
+            }
+
             const response = await fetch(`${CHATBOT_CONFIG.apiBaseUrl}/nexus/ai/widget/chat/reaction`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'accept': 'application/json',
-                },
+                headers: headers,
                 body: JSON.stringify(requestPayload),
             });
 
@@ -120,7 +142,7 @@
     }
 
     // Send email API function
-    async function sendEmail(name, email, message) {
+    async function sendEmail(name, email, message, chatbotId = null) {
         try {
             const requestPayload = {
                 Name: name,
@@ -128,12 +150,19 @@
                 Message: message
             };
 
-            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/SendAnEmail/SendMail', {
+            const headers = {
+                'Content-Type': 'application/json',
+                'accept': 'application/json',
+            };
+
+            // Add x-widget-key header if chatbotId is provided
+            if (chatbotId) {
+                headers['x-widget-key'] = chatbotId;
+            }
+
+            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/SendAnEmail_Widget/SendMail', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'accept': 'application/json',
-                },
+                headers: headers,
                 body: JSON.stringify(requestPayload),
             });
 
@@ -150,13 +179,20 @@
     }
 
     // Get clinic settings from Settings API
-    async function getClinicSettings() {
+    async function getClinicSettings(chatbotId = null) {
         try {
-            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/Settings/Get', {
+            const headers = {
+                'accept': 'text/plain',
+            };
+
+            // Add x-widget-key header if chatbotId is provided
+            if (chatbotId) {
+                headers['x-widget-key'] = chatbotId;
+            }
+
+            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/Settings_Widget/Get', {
                 method: 'GET',
-                headers: {
-                    'accept': 'text/plain',
-                },
+                headers: headers,
             });
 
             if (!response.ok) {
@@ -172,13 +208,20 @@
     }
 
     // Get starter questions from StarterQuestions API
-    async function getStarterQuestions() {
+    async function getStarterQuestions(chatbotId = null) {
         try {
-            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/StarterQuestions/Get', {
+            const headers = {
+                'accept': 'text/plain',
+            };
+
+            // Add x-widget-key header if chatbotId is provided
+            if (chatbotId) {
+                headers['x-widget-key'] = chatbotId;
+            }
+
+            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/StarterQuestions_Widget/Get', {
                 method: 'GET',
-                headers: {
-                    'accept': 'text/plain',
-                },
+                headers: headers,
             });
 
             if (!response.ok) {
@@ -194,8 +237,8 @@
     }
 
     // Backward compatibility alias
-    async function saveChatReaction(sessionId, messageId, reaction) {
-        return saveReaction(sessionId, messageId, reaction);
+    async function saveChatReaction(sessionId, messageId, reaction, chatbotId = null) {
+        return saveReaction(sessionId, messageId, reaction, chatbotId);
     }
 
     // Chatbot Widget Class
@@ -237,7 +280,7 @@
 
         async loadClinicSettings() {
             try {
-                const settings = await getClinicSettings();
+                const settings = await getClinicSettings(this.config.chatbotId);
                 // Update config with API settings
                 this.config = {
                     ...this.config,
@@ -260,7 +303,7 @@
 
         async loadStarterQuestions() {
             try {
-                const questions = await getStarterQuestions();
+                const questions = await getStarterQuestions(this.config.chatbotId);
                 this.starterQuestions = questions;
                 console.log('Widget starter questions loaded:', questions);
             } catch (error) {
@@ -321,9 +364,9 @@
                 }
                 
                 .nexus-chatbot-container {
-                    width: 650px;
+                    width: 750px;
                     max-width: calc(100vw - 40px);
-                    height: 480px;
+                    height: 550px;
                     max-height: calc(100vh - 80px);
                     background: white;
                     border-radius: 16px;
@@ -668,6 +711,53 @@
                         padding: 3px 8px !important;
                         font-size: 11px !important;
                     }
+
+                    /* Privacy Notice Mobile Styles */
+                    .nexus-privacy-notice-header {
+                        padding: 12px 15px !important;
+                    }
+
+                    .nexus-privacy-notice-header h3 {
+                        font-size: 14px !important;
+                    }
+
+                    .nexus-privacy-notice-header .nexus-status {
+                        font-size: 11px !important;
+                    }
+
+                    .nexus-privacy-notice-header .nexus-bot-avatar {
+                        width: 32px !important;
+                        height: 32px !important;
+                        font-size: 16px !important;
+                    }
+
+                    .nexus-privacy-notice-content {
+                        padding: 20px 15px !important;
+                    }
+
+                    .nexus-privacy-notice-content p {
+                        font-size: 14px !important;
+                        margin-bottom: 15px !important;
+                    }
+
+                    .nexus-privacy-notice-footer {
+                        padding: 15px !important;
+                    }
+
+                    .nexus-privacy-notice-footer h4 {
+                        font-size: 14px !important;
+                        margin-bottom: 15px !important;
+                    }
+
+                    .nexus-privacy-agree {
+                        flex-direction: column !important;
+                        gap: 10px !important;
+                    }
+
+                    .nexus-agree-btn {
+                        padding: 10px 25px !important;
+                        font-size: 14px !important;
+                    }
                 }
                 
                 /* Reaction buttons styling */
@@ -837,66 +927,153 @@
 
                 /* Privacy Notice Styles */
                 .nexus-privacy-notice {
-                    background: #fff3cd;
-                    border: 1px solid #ffeaa7;
-                    border-radius: 8px;
-                    padding: 12px 16px;
-                    margin: 16px 20px;
-                    font-size: 14px;
-                    color: #856404;
-                    line-height: 1.4;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: white;
+                    display: flex;
+                    flex-direction: column;
+                    z-index: 100;
+                    border-radius: 16px;
+                    overflow: hidden;
                 }
 
-                .nexus-privacy-notice p {
-                    margin: 0 0 8px 0;
+                .nexus-privacy-notice-header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 16px 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 }
 
-                .nexus-privacy-notice a {
+                .nexus-privacy-notice-header .nexus-header-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+
+                .nexus-privacy-notice-header .nexus-bot-avatar {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.2);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    overflow: hidden;
+                }
+
+                .nexus-privacy-notice-header .nexus-bot-avatar img {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 50%;
+                    object-fit: cover;
+                }
+
+                .nexus-privacy-notice-header h3 {
+                    margin: 0;
+                    font-size: 16px;
+                    font-weight: 600;
+                }
+
+                .nexus-privacy-notice-header .nexus-status {
+                    font-size: 12px;
+                    opacity: 0.8;
+                }
+
+                .nexus-privacy-notice-content {
+                    flex: 1;
+                    padding: 30px;
+                    overflow-y: auto;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    text-align: center;
+                }
+
+                .nexus-privacy-notice-content p {
+                    margin: 0 0 20px 0;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    color: #333;
+                    max-width: 600px;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+
+                .nexus-privacy-notice-content a {
                     color: #007bff;
                     text-decoration: underline;
                     cursor: pointer;
+                    font-weight: 500;
                 }
 
-                .nexus-privacy-notice a:hover {
+                .nexus-privacy-notice-content a:hover {
                     color: #0056b3;
+                    text-decoration: none;
+                }
+
+                .nexus-privacy-notice-footer {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-top: 1px solid #e9ecef;
+                    text-align: center;
+                }
+
+                .nexus-privacy-notice-footer h4 {
+                    margin: 0 0 20px 0;
+                    color: #333;
+                    font-size: 16px;
+                    font-weight: 600;
                 }
 
                 .nexus-privacy-agree {
                     display: flex;
                     align-items: center;
-                    gap: 8px;
-                    margin-top: 12px;
+                    justify-content: center;
+                    gap: 15px;
+                    margin-bottom: 15px;
                 }
 
                 .nexus-privacy-agree input[type="checkbox"] {
                     margin: 0;
+                    transform: scale(1.2);
                 }
 
                 .nexus-privacy-agree label {
-                    font-size: 13px;
+                    font-size: 14px;
                     cursor: pointer;
                     user-select: none;
+                    color: #333;
                 }
 
                 .nexus-agree-btn {
-                    background: #007bff;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     color: white;
                     border: none;
-                    padding: 8px 16px;
-                    border-radius: 6px;
+                    padding: 12px 30px;
+                    border-radius: 8px;
                     cursor: pointer;
-                    font-size: 14px;
-                    margin-left: auto;
-                    transition: background 0.2s;
+                    font-size: 16px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
                 }
 
                 .nexus-agree-btn:hover {
-                    background: #0056b3;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
                 }
 
                 .nexus-agree-btn:disabled {
                     background: #ccc;
                     cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
                 }
 
                 /* Action Buttons Styles */
@@ -1341,13 +1518,31 @@
                 ? `<a href="${this.config.privacyNoticeUrl}" target="_blank" rel="noopener noreferrer">Privacy Notice</a>`
                 : `<a href="#" onclick="alert('Privacy Notice: We collect basic information to improve our services.')">Privacy Notice</a>`;
             
+            const logoHtml = this.config.logoUrl 
+                ? `<img src="${this.config.logoUrl}" alt="Clinic Logo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`
+                : '🤖';
+            
             privacyNotice.innerHTML = `
-                <p>${this.config.privacyNoticeText}</p>
-                <p>By continuing, you consent to educational responses and lead capture. See our ${privacyLinkHtml}.</p>
-                <div class="nexus-privacy-agree">
-                    <input type="checkbox" id="nexus-privacy-checkbox">
-                    <label for="nexus-privacy-checkbox">I agree</label>
-                    <button class="nexus-agree-btn" disabled onclick="window.nexusChatbot.handlePrivacyAgreement()">I agree</button>
+                <div class="nexus-privacy-notice-header">
+                    <div class="nexus-header-info">
+                        <div class="nexus-bot-avatar">${logoHtml}</div>
+                        <div>
+                            <h3>${this.config.clinicName}</h3>
+                            <span class="nexus-status">Educational assistant only</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="nexus-privacy-notice-content">
+                    <p>${this.config.privacyNoticeText}</p>
+                    <p>By continuing, you consent to educational responses and lead capture. Please review our ${privacyLinkHtml} for complete details about how we handle your information.</p>
+                </div>
+                <div class="nexus-privacy-notice-footer">
+                    <h4>Privacy Policy</h4>
+                    <div class="nexus-privacy-agree">
+                        <input type="checkbox" id="nexus-privacy-checkbox">
+                        <label for="nexus-privacy-checkbox">I agree to the privacy policy</label>
+                    </div>
+                    <button class="nexus-agree-btn" disabled onclick="window.nexusChatbot.handlePrivacyAgreement()">Continue</button>
                 </div>
             `;
             return privacyNotice;
@@ -1522,7 +1717,7 @@
 
         async clearChat() {
             try {
-                await clearChatSession();
+                await clearChatSession(this.config.sessionId, this.config.chatbotId);
                 this.messages = [
                     {
                         id: 1,
@@ -1568,7 +1763,7 @@
             this.updateInputState();
 
             try {
-                const response = await fetchChatResponse(message);
+                const response = await fetchChatResponse(message, this.config.chatbotId);
                 
                 const botMessage = {
                     id: Date.now() + 1,
@@ -1626,7 +1821,7 @@
             this.updateInputState();
 
             try {
-                const response = await fetchChatResponse(questionText);
+                const response = await fetchChatResponse(questionText, this.config.chatbotId);
                 
                 const botMessage = {
                     id: Date.now() + 1,
@@ -1888,7 +2083,7 @@
                 this.renderMessages();
                 
                 // Save reaction to backend
-                await saveReaction(sessionId, messageId, newReaction);
+                await saveReaction(sessionId, messageId, newReaction, this.config.chatbotId);
             } catch (error) {
                 console.error('Error saving reaction:', error);
                 // Revert local state on error
@@ -1979,7 +2174,7 @@
                 cancelBtn.disabled = true;
 
                 // Send email
-                await sendEmail(name, email, message);
+                await sendEmail(name, email, message, this.config.chatbotId);
 
                 // Show success
                 loading.classList.remove('show');

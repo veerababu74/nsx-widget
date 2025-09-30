@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction, sendEmail, getClinicSettings, getStarterQuestions } from '../services/chatApi';
 import './Chatbot.css';
 
-const Chatbot = () => {
+const Chatbot = ({ chatbotId = null }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -34,7 +34,7 @@ const Chatbot = () => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const settings = await getClinicSettings();
+        const settings = await getClinicSettings(chatbotId);
         setClinicSettings(settings);
         console.log('Clinic settings loaded:', settings);
         
@@ -71,7 +71,7 @@ const Chatbot = () => {
   useEffect(() => {
     const loadStarterQuestions = async () => {
       try {
-        const questions = await getStarterQuestions();
+        const questions = await getStarterQuestions(chatbotId);
         setStarterQuestions(questions);
         console.log('Starter questions loaded:', questions);
       } catch (error) {
@@ -111,7 +111,7 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetchImprovedChatResponse(inputMessage);
+      const response = await fetchImprovedChatResponse(inputMessage, null, "default", chatbotId);
       
       const botMessage = {
         id: Date.now() + 1,
@@ -165,7 +165,7 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetchImprovedChatResponse(questionText);
+      const response = await fetchImprovedChatResponse(questionText, null, "default", chatbotId);
       
       const botMessage = {
         id: Date.now() + 1,
@@ -206,7 +206,7 @@ const Chatbot = () => {
 
   const clearChat = async () => {
     try {
-      await clearImprovedChatSession();
+      await clearImprovedChatSession(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, chatbotId);
       setMessages([
         {
           id: 1,
@@ -244,7 +244,7 @@ const Chatbot = () => {
       ));
       
       // Save reaction to backend
-      await saveReaction(sessionId, messageId, newReaction);
+      await saveReaction(sessionId, messageId, newReaction, chatbotId);
     } catch (error) {
       console.error('Error saving reaction:', error);
       // Revert local state on error
@@ -306,7 +306,7 @@ const Chatbot = () => {
     }
 
     try {
-      await sendEmail(name, email, message);
+      await sendEmail(name, email, message, chatbotId);
       alert('Email sent successfully! We\'ll get back to you soon.');
       handleHideEmailForm();
     } catch (error) {
@@ -364,33 +364,62 @@ const Chatbot = () => {
         {/* Privacy Notice */}
         {!privacyAgreed && (
           <div className="privacy-notice">
-            <p>I'm an educational assistant. I don't provide medical advice or diagnosis.</p>
-            <p>
-              By continuing, you consent to educational responses and lead capture. See our{' '}
-              {clinicSettings?.PrivacyNoticeUrl ? (
-                <a href={clinicSettings.PrivacyNoticeUrl} target="_blank" rel="noopener noreferrer">
-                  Privacy Notice
-                </a>
-              ) : (
-                <a 
-                  href="#" 
-                  onClick={() => alert('Privacy Notice: We collect basic information to improve our services.')}
-                >
-                  Privacy Notice
-                </a>
-              )}
-              .
-            </p>
-            <div className="privacy-agree">
-              <label>
-                <input type="checkbox" id="privacy-checkbox" />
-                I agree
-              </label>
+            <div className="privacy-notice-header">
+              <div className="header-info">
+                <div className="bot-avatar">
+                  {clinicSettings?.LogoUrl ? (
+                    <img 
+                      src={clinicSettings.LogoUrl} 
+                      alt="Clinic Logo" 
+                      style={{
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover'
+                      }} 
+                    />
+                  ) : (
+                    '🤖'
+                  )}
+                </div>
+                <div>
+                  <h3>{clinicSettings?.ClinicName || 'Clinic Name'}</h3>
+                  <span className="status">Educational assistant not medical advice</span>
+                </div>
+              </div>
+            </div>
+            <div className="privacy-notice-content">
+              <p>I'm an educational assistant. I don't provide medical advice or diagnosis.</p>
+              <p>
+                By continuing, you consent to educational responses and lead capture. Please review our{' '}
+                {clinicSettings?.PrivacyNoticeUrl ? (
+                  <a href={clinicSettings.PrivacyNoticeUrl} target="_blank" rel="noopener noreferrer">
+                    Privacy Notice
+                  </a>
+                ) : (
+                  <a 
+                    href="#" 
+                    onClick={() => alert('Privacy Notice: We collect basic information to improve our services.')}
+                  >
+                    Privacy Notice
+                  </a>
+                )}
+                {' '}for complete details about how we handle your information.
+              </p>
+            </div>
+            <div className="privacy-notice-footer">
+              <h4>Privacy Policy</h4>
+              <div className="privacy-agree">
+                <label>
+                  <input type="checkbox" id="privacy-checkbox" />
+                  I agree to the privacy policy
+                </label>
+              </div>
               <button 
                 className="agree-btn" 
                 onClick={handlePrivacyAgreement}
               >
-                I agree
+                Continue
               </button>
             </div>
           </div>

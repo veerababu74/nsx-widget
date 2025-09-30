@@ -9,9 +9,10 @@ const API_BASE_URL = import.meta.env.DEV
  * @param {string} message - The user message
  * @param {string} sessionId - Session ID (optional, defaults to auto-generated)
  * @param {string} indexName - Index name for the conversation context (optional)
+ * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<Object>} - The full AI response object
  */
-export const fetchImprovedChatResponse = async (message, sessionId = null, indexName = "default") => {
+export const fetchImprovedChatResponse = async (message, sessionId = null, indexName = "default", chatbotId = null) => {
     try {
         // Generate session ID if not provided
         const currentSessionId = sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -22,12 +23,19 @@ export const fetchImprovedChatResponse = async (message, sessionId = null, index
             index_name: indexName
         };
 
+        const headers = {
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+        };
+
+        // Add x-widget-key header if chatbotId is provided
+        if (chatbotId) {
+            headers['x-widget-key'] = chatbotId;
+        }
+
         const response = await fetch(`${API_BASE_URL}/nexus/ai/widget/chat`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': 'application/json',
-            },
+            headers: headers,
             body: JSON.stringify(requestPayload),
         });
 
@@ -48,9 +56,10 @@ export const fetchImprovedChatResponse = async (message, sessionId = null, index
  * @param {string} sessionId - Session ID
  * @param {string} messageId - Message ID to react to
  * @param {boolean} reaction - Reaction (true for like/positive, false for dislike/negative)
+ * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<Object>} - The API response
  */
-export const saveReaction = async (sessionId, messageId, reaction) => {
+export const saveReaction = async (sessionId, messageId, reaction, chatbotId = null) => {
     try {
         const requestPayload = {
             session_id: sessionId,
@@ -58,12 +67,19 @@ export const saveReaction = async (sessionId, messageId, reaction) => {
             reaction: reaction
         };
 
+        const headers = {
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+        };
+
+        // Add x-widget-key header if chatbotId is provided
+        if (chatbotId) {
+            headers['x-widget-key'] = chatbotId;
+        }
+
         const response = await fetch(`${API_BASE_URL}/nexus/ai/widget/chat/reaction`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': 'application/json',
-            },
+            headers: headers,
             body: JSON.stringify(requestPayload),
         });
 
@@ -82,16 +98,24 @@ export const saveReaction = async (sessionId, messageId, reaction) => {
 /**
  * Clear conversation state for a session
  * @param {string} sessionId - Session ID to clear
+ * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<string>} - Success message
  */
-export const clearImprovedChatSession = async (sessionId) => {
+export const clearImprovedChatSession = async (sessionId, chatbotId = null) => {
     try {
+        const headers = {
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+        };
+
+        // Add x-widget-key header if chatbotId is provided
+        if (chatbotId) {
+            headers['x-widget-key'] = chatbotId;
+        }
+
         const response = await fetch(`${API_BASE_URL}/nexus/ai/widget/session/${sessionId}/clear`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': 'application/json',
-            },
+            headers: headers,
         });
 
         if (!response.ok) {
@@ -111,23 +135,32 @@ export const clearImprovedChatSession = async (sessionId) => {
  * @param {string} sessionId - Session ID
  * @param {string} messageId - Message ID to react to
  * @param {boolean} reaction - Reaction (true for like, false for dislike)
+ * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<Object>} - Reaction response
  */
-export const saveChatReaction = async (sessionId, messageId, reaction) => {
-    return saveReaction(sessionId, messageId, reaction);
+export const saveChatReaction = async (sessionId, messageId, reaction, chatbotId = null) => {
+    return saveReaction(sessionId, messageId, reaction, chatbotId);
 };
 
 /**
  * Get clinic settings from the Settings API
+ * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<Object>} - Clinic settings object
  */
-export const getClinicSettings = async () => {
+export const getClinicSettings = async (chatbotId = null) => {
     try {
-        const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/Settings/Get', {
+        const headers = {
+            'accept': 'text/plain',
+        };
+
+        // Add x-widget-key header if chatbotId is provided
+        if (chatbotId) {
+            headers['x-widget-key'] = chatbotId;
+        }
+
+        const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/Settings_Widget/Get', {
             method: 'GET',
-            headers: {
-                'accept': 'text/plain',
-            },
+            headers: headers,
         });
 
         if (!response.ok) {
@@ -144,15 +177,23 @@ export const getClinicSettings = async () => {
 
 /**
  * Get starter questions from the StarterQuestions API
+ * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<Object>} - Starter questions object containing q1, q2, q3 and their answers
  */
-export const getStarterQuestions = async () => {
+export const getStarterQuestions = async (chatbotId = null) => {
     try {
-        const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/StarterQuestions/Get', {
+        const headers = {
+            'accept': 'text/plain',
+        };
+
+        // Add x-widget-key header if chatbotId is provided
+        if (chatbotId) {
+            headers['x-widget-key'] = chatbotId;
+        }
+
+        const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/StarterQuestions_Widget/Get', {
             method: 'GET',
-            headers: {
-                'accept': 'text/plain',
-            },
+            headers: headers,
         });
 
         if (!response.ok) {
@@ -172,9 +213,10 @@ export const getStarterQuestions = async () => {
  * @param {string} name - Sender's name
  * @param {string} email - Sender's email address
  * @param {string} message - Email message content
+ * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<string>} - API response (text/plain)
  */
-export const sendEmail = async (name, email, message) => {
+export const sendEmail = async (name, email, message, chatbotId = null) => {
     try {
         const requestPayload = {
             Name: name,
@@ -182,12 +224,19 @@ export const sendEmail = async (name, email, message) => {
             Message: message
         };
 
-        const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/SendAnEmail/SendMail', {
+        const headers = {
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+        };
+
+        // Add x-widget-key header if chatbotId is provided
+        if (chatbotId) {
+            headers['x-widget-key'] = chatbotId;
+        }
+
+        const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/SendAnEmail_Widget/SendMail', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': 'application/json',
-            },
+            headers: headers,
             body: JSON.stringify(requestPayload),
         });
 
