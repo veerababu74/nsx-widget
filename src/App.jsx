@@ -10,8 +10,7 @@ function App() {
         position: 'bottom-right',
         theme: 'default',
         autoOpen: false,
-        welcomeMessage: "Welcome to Nexus AI! I'm here to help you with any questions.",
-        chatbotId: "335934ee-d6cf-4a80-a17e-e42071c9466a"
+        welcomeMessage: "Welcome to Nexus AI! I'm here to help you with any questions."
       });
     }
     

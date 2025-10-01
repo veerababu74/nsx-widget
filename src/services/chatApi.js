@@ -5,6 +5,40 @@ const API_BASE_URL = import.meta.env.DEV
     : (import.meta.env.VITE_API_BASE_URL || 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net');
 
 /**
+ * Get widget key (chatbot ID) by website URL
+ * @param {string} webUrl - The website URL to get the chatbot ID for
+ * @returns {Promise<string>} - The chatbot ID
+ */
+export const getWidgetKeyByWebUrl = async (webUrl = null) => {
+    try {
+        // Use current website URL if not provided
+        let currentUrl = webUrl || window.location.origin;
+        
+        // Remove trailing slash if present
+        if (currentUrl.endsWith('/')) {
+            currentUrl = currentUrl.slice(0, -1);
+        }
+
+        const response = await fetch(`https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/Registration_NoKey/GetWidgetKeyByWebUrl?webUrl=${encodeURIComponent(currentUrl)}`, {
+            method: 'GET',
+            headers: {
+                'accept': 'text/plain',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const chatbotId = await response.text();
+        return chatbotId.trim(); // Remove any whitespace
+    } catch (error) {
+        console.error('Error fetching widget key by web URL:', error);
+        throw new Error('Failed to get widget key for this website.');
+    }
+};
+
+/**
  * Send a chat message to the widget chat endpoint
  * @param {string} message - The user message
  * @param {string} sessionId - Session ID (optional, defaults to auto-generated)
@@ -249,6 +283,39 @@ export const sendEmail = async (name, email, message, chatbotId = null) => {
     } catch (error) {
         console.error('Error sending email:', error);
         throw new Error('Failed to send email. Please try again.');
+    }
+};
+
+/**
+ * Get doctor details for the widget
+ * @param {string} chatbotId - Chatbot ID for widget key identification
+ * @returns {Promise<Object>} - The doctor details object
+ */
+export const getDoctorDetails = async (chatbotId) => {
+    try {
+        const headers = {
+            'accept': 'text/plain',
+        };
+
+        // Add x-widget-key header
+        if (chatbotId) {
+            headers['x-widget-key'] = chatbotId;
+        }
+
+        const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/Staff_Widget/GetDoctorDetails', {
+            method: 'GET',
+            headers: headers,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching doctor details:', error);
+        throw new Error('Failed to get doctor details.');
     }
 };
 

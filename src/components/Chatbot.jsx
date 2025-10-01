@@ -1,25 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction, sendEmail, getClinicSettings, getStarterQuestions } from '../services/chatApi';
+import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction, sendEmail, getClinicSettings, getStarterQuestions, getDoctorDetails, getWidgetKeyByWebUrl } from '../services/chatApi';
 import './Chatbot.css';
 
-const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "Hi! Ask me about our services, fees, or how to get started.",
-      sender: 'bot',
-      timestamp: new Date()
-    }
-  ]);
+const Chatbot = () => {
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [lastBotMessageId, setLastBotMessageId] = useState(null); // Track the last bot message ID
-  const [privacyAgreed, setPrivacyAgreed] = useState(true); // Skip privacy agreement
   const [showEmailForm, setShowEmailForm] = useState(false); // Track email form visibility
   const [clinicSettings, setClinicSettings] = useState(null); // Store clinic settings
   const [starterQuestions, setStarterQuestions] = useState(null); // Store starter questions
   const [showStarterQuestions, setShowStarterQuestions] = useState(true); // Control starter questions visibility
+  const [doctorDetails, setDoctorDetails] = useState(null); // Store doctor details
+  const [chatbotId, setChatbotId] = useState(null); // Store dynamically fetched chatbot ID
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -30,8 +24,66 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
     scrollToBottom();
   }, [messages]);
 
-  // Load clinic settings on component mount
+  // First, fetch the chatbot ID based on current website URL
   useEffect(() => {
+    const fetchChatbotId = async () => {
+      try {
+        const id = await getWidgetKeyByWebUrl();
+        setChatbotId(id);
+        console.log('Chatbot ID fetched:', id);
+      } catch (error) {
+        console.error('Failed to fetch chatbot ID:', error);
+        // Set a fallback ID if needed
+        setChatbotId("335934ee-d6cf-4a80-a17e-e42071c9466a");
+      }
+    };
+    
+    fetchChatbotId();
+  }, []);
+
+  // Load doctor details and set initial welcome message (depends on chatbotId)
+  useEffect(() => {
+    if (!chatbotId) return; // Wait for chatbot ID to be available
+    
+    const loadDoctorDetails = async () => {
+      try {
+        const details = await getDoctorDetails(chatbotId);
+        setDoctorDetails(details);
+        console.log('Doctor details loaded:', details);
+        
+        // Create personalized welcome message
+        const doctorFirstName = details.DoctorFirstName || details.StaffFirstName || 'Doctor';
+        const welcomeMessage = `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
+        
+        setMessages([
+          {
+            id: 1,
+            text: welcomeMessage,
+            sender: 'bot',
+            timestamp: new Date()
+          }
+        ]);
+      } catch (error) {
+        console.error('Failed to load doctor details:', error);
+        // Set fallback welcome message
+        setMessages([
+          {
+            id: 1,
+            text: "Hi! Ask me about our services, fees, or how to get started.",
+            sender: 'bot',
+            timestamp: new Date()
+          }
+        ]);
+      }
+    };
+    
+    loadDoctorDetails();
+  }, [chatbotId]);
+
+  // Load clinic settings on component mount (depends on chatbotId)
+  useEffect(() => {
+    if (!chatbotId) return; // Wait for chatbot ID to be available
+    
     const loadSettings = async () => {
       try {
         const settings = await getClinicSettings(chatbotId);
@@ -65,10 +117,12 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
     };
     
     loadSettings();
-  }, []);
+  }, [chatbotId]);
 
-  // Load starter questions on component mount
+  // Load starter questions on component mount (depends on chatbotId)
   useEffect(() => {
+    if (!chatbotId) return; // Wait for chatbot ID to be available
+    
     const loadStarterQuestions = async () => {
       try {
         const questions = await getStarterQuestions(chatbotId);
@@ -86,7 +140,7 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
     };
     
     loadStarterQuestions();
-  }, []);
+  }, [chatbotId]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -197,10 +251,15 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
   const clearChat = async () => {
     try {
       await clearImprovedChatSession(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, chatbotId);
+      
+      // Create personalized welcome message
+      const doctorFirstName = doctorDetails?.DoctorFirstName || doctorDetails?.StaffFirstName || 'Doctor';
+      const welcomeMessage = `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
+      
       setMessages([
         {
           id: 1,
-          text: "Hi! Ask me about our services, fees, or how to get started.",
+          text: welcomeMessage,
           sender: 'bot',
           timestamp: new Date()
         }
@@ -268,11 +327,6 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
     }, 100);
   };
 
-  // Privacy agreement handler
-  const handlePrivacyAgreement = () => {
-    setPrivacyAgreed(true);
-  };
-
   // Email form handlers
   const handleShowEmailForm = () => {
     setShowEmailForm(true);
@@ -313,11 +367,21 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle chat"
       >
-        {isOpen ? '✕' : '💬'}
+        {isOpen ? (
+          <>
+            <span>✕</span>
+            <span>Close</span>
+          </>
+        ) : (
+          <>
+            <span>💬</span>
+            <span>Need Help</span>
+          </>
+        )}
       </button>
 
       {/* Chat Window */}
-      <div className={`chatbot-container ${isOpen ? 'open' : ''} ${!privacyAgreed ? 'privacy-mode' : ''}`}>
+      <div className={`chatbot-container ${isOpen ? 'open' : ''}`}>
         <div className="chatbot-header">
           <div className="header-info">
             <div className="bot-avatar">
@@ -342,78 +406,11 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
             </div>
           </div>
           <div className="header-actions">
-            <button onClick={clearChat} className="clear-btn" title="Clear chat">
-              🗑️
-            </button>
             <button onClick={() => setIsOpen(false)} className="close-btn" title="Close chat">
               ✕
             </button>
           </div>
         </div>
-
-        {/* Privacy Notice */}
-        {!privacyAgreed && (
-          <div className="privacy-notice">
-            <div className="privacy-notice-header">
-              <div className="header-info">
-                <div className="bot-avatar">
-                  {clinicSettings?.LogoUrl ? (
-                    <img 
-                      src={clinicSettings.LogoUrl} 
-                      alt="Clinic Logo" 
-                      style={{
-                        width: '100%', 
-                        height: '100%', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover'
-                      }} 
-                    />
-                  ) : (
-                    '🤖'
-                  )}
-                </div>
-                <div>
-                  <h3>{clinicSettings?.ClinicName || 'Clinic Name'}</h3>
-                  <span className="status">Educational assistant not medical advice</span>
-                </div>
-              </div>
-            </div>
-            <div className="privacy-notice-content">
-              <p>I'm an educational assistant. I don't provide medical advice or diagnosis.</p>
-              <p>
-                By continuing, you consent to educational responses and lead capture. Please review our{' '}
-                {clinicSettings?.PrivacyNoticeUrl ? (
-                  <a href={clinicSettings.PrivacyNoticeUrl} target="_blank" rel="noopener noreferrer">
-                    Privacy Notice
-                  </a>
-                ) : (
-                  <a 
-                    href="#" 
-                    onClick={() => alert('Privacy Notice: We collect basic information to improve our services.')}
-                  >
-                    Privacy Notice
-                  </a>
-                )}
-                {' '}for complete details about how we handle your information.
-              </p>
-            </div>
-            <div className="privacy-notice-footer">
-              <h4>Privacy Policy</h4>
-              <div className="privacy-agree">
-                <label>
-                  <input type="checkbox" id="privacy-checkbox" />
-                  I agree to the privacy policy
-                </label>
-              </div>
-              <button 
-                className="agree-btn" 
-                onClick={handlePrivacyAgreement}
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
 
         <div className="chatbot-messages">
           {messages.map((message) => (
@@ -514,7 +511,7 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
                 <button 
                   className="starter-question-btn"
                   onClick={() => handleStarterQuestionClick(starterQuestions.q1)}
-                  disabled={isLoading || !privacyAgreed}
+                  disabled={isLoading}
                 >
                   <span>{starterQuestions.q1}</span>
                 </button>
@@ -523,7 +520,7 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
                 <button 
                   className="starter-question-btn"
                   onClick={() => handleStarterQuestionClick(starterQuestions.q2)}
-                  disabled={isLoading || !privacyAgreed}
+                  disabled={isLoading}
                 >
                   <span>{starterQuestions.q2}</span>
                 </button>
@@ -532,17 +529,12 @@ const Chatbot = ({ chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a" }) => {
                 <button 
                   className="starter-question-btn"
                   onClick={() => handleStarterQuestionClick(starterQuestions.q3)}
-                  disabled={isLoading || !privacyAgreed}
+                  disabled={isLoading}
                 >
                   <span>{starterQuestions.q3}</span>
                 </button>
               )}
             </div>
-            {!privacyAgreed && (
-              <div className="privacy-notice-starter">
-                Please agree to the privacy notice above to start chatting.
-              </div>
-            )}
           </div>
         )}
 
