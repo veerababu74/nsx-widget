@@ -300,6 +300,107 @@
         return saveReaction(sessionId, messageId, reaction, chatbotId);
     }
 
+    // Session tracking functions
+    async function fetchUserIP() {
+        try {
+            // Try multiple IP services for reliability
+            const ipServices = [
+                'https://api.ipify.org?format=json',
+                'https://ipapi.co/json/',
+                'https://httpbin.org/ip'
+            ];
+
+            for (const service of ipServices) {
+                try {
+                    const response = await fetch(service);
+                    if (!response.ok) continue;
+                    
+                    const data = await response.json();
+                    
+                    // Different services return IP in different formats
+                    if (data.ip) {
+                        return data.ip;
+                    } else if (data.origin) {
+                        return data.origin; // httpbin.org format
+                    }
+                } catch (error) {
+                    console.warn(`Failed to fetch IP from ${service}:`, error);
+                    continue;
+                }
+            }
+            
+            // Fallback - return a placeholder if all services fail
+            console.warn('All IP services failed, using fallback');
+            return '127.0.0.1';
+        } catch (error) {
+            console.error('Error fetching user IP:', error);
+            return '127.0.0.1'; // Fallback IP
+        }
+    }
+
+    async function insertUserChatSession(ipAddress) {
+        try {
+            const sessionStartTime = new Date().toISOString();
+            
+            const requestPayload = {
+                IPAddress: ipAddress,
+                SessionStartTime: sessionStartTime
+            };
+
+            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/UserChatSession_Widget/Insert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'text/plain',
+                },
+                body: JSON.stringify(requestPayload),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const sessionId = await response.text();
+            console.log('User chat session inserted with ID:', sessionId);
+            return sessionId.trim(); // Return the session ID for storage
+        } catch (error) {
+            console.error('Error inserting user chat session:', error);
+            throw new Error('Failed to initialize chat session tracking.');
+        }
+    }
+
+    async function trackButtonClick(userChatSessionId, buttonLabel) {
+        try {
+            const timestamp = new Date().toISOString();
+            
+            const requestPayload = {
+                UserChatSessionId: userChatSessionId,
+                Click: buttonLabel,
+                Timestamp: timestamp
+            };
+
+            const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/BookNowClicks_Widget/Insert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'text/plain',
+                },
+                body: JSON.stringify(requestPayload),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.text();
+            console.log('Button click tracked:', buttonLabel, data);
+            return data;
+        } catch (error) {
+            console.error('Error tracking button click:', error);
+            throw new Error('Failed to track button click.');
+        }
+    }
+
     // Chatbot Widget Class
     class NexusChatbotWidget {
         constructor(config = {}) {
@@ -309,6 +410,9 @@
             this.isOpen = this.config.autoOpen;
             this.container = null;
             this.starterQuestions = null;
+            this.userIP = null; // Store user's IP address
+            this.sessionTracked = false; // Track if session has been recorded
+            this.userChatSessionId = null; // Store the session ID from API
             this.showStarterQuestions = true;
             this.doctorDetails = null;
             
@@ -324,6 +428,7 @@
 
         async init() {
             await this.fetchChatbotId();
+            await this.fetchIP(); // Fetch user's IP address
             await this.loadDoctorDetails();
             await this.loadClinicSettings();
             await this.loadStarterQuestions();
@@ -341,6 +446,16 @@
                 console.error('Failed to fetch chatbot ID for widget:', error);
                 // Set a fallback ID if needed
                 this.config.chatbotId = "335934ee-d6cf-4a80-a17e-e42071c9466a";
+            }
+        }
+
+        async fetchIP() {
+            try {
+                const ip = await fetchUserIP();
+                this.userIP = ip;
+                console.log('Widget user IP fetched:', ip);
+            } catch (error) {
+                console.error('Failed to fetch user IP for widget:', error);
             }
         }
 
@@ -1410,12 +1525,8 @@
             
             // Book Now button
             if (this.config.bookNowShow) {
-                const bookNowAction = this.config.bookNowUrl 
-                    ? `window.open('${this.config.bookNowUrl}', '_blank')`
-                    : `alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.')`;
-                
                 buttonsHtml += `
-                    <button class="nexus-action-btn" onclick="${bookNowAction}">
+                    <button class="nexus-action-btn" id="nexus-book-now-btn">
                         ${this.config.bookNowText}
                     </button>
                 `;
@@ -1424,7 +1535,7 @@
             // Send Email button
             if (this.config.sendEmailShow) {
                 buttonsHtml += `
-                    <button class="nexus-action-btn secondary" onclick="window.nexusChatbot.showEmailForm()">
+                    <button class="nexus-action-btn secondary" id="nexus-send-email-btn">
                         ${this.config.sendEmailText}
                     </button>
                 `;
@@ -1520,11 +1631,22 @@
                 }
             });
 
+            // Action button event listeners
+            const bookNowBtn = this.container.querySelector('#nexus-book-now-btn');
+            if (bookNowBtn) {
+                bookNowBtn.addEventListener('click', () => this.handleBookNowClick());
+            }
+
+            const sendEmailBtn = this.container.querySelector('#nexus-send-email-btn');
+            if (sendEmailBtn) {
+                sendEmailBtn.addEventListener('click', () => this.handleSendEmailClick());
+            }
+
             // Set up global reference for widget access
             window.nexusChatbot = this;
         }
 
-        toggleChat() {
+        async toggleChat() {
             this.isOpen = !this.isOpen;
             this.toggleBtn.innerHTML = this.isOpen ? 
                 '<span>✕</span><span>Close</span>' : 
@@ -1535,7 +1657,55 @@
             if (this.isOpen) {
                 this.inputTextarea.focus();
                 this.scrollToBottom();
+                
+                // Track session when chatbot is opened for the first time
+                await this.trackSession();
             }
+        }
+
+        async trackSession() {
+            if (this.userIP && !this.sessionTracked) {
+                try {
+                    const sessionId = await insertUserChatSession(this.userIP);
+                    this.userChatSessionId = sessionId; // Store the returned session ID
+                    this.sessionTracked = true;
+                    console.log('Widget session tracked for IP:', this.userIP, 'Session ID:', sessionId);
+                } catch (error) {
+                    console.error('Failed to track widget session:', error);
+                }
+            }
+        }
+
+        async handleBookNowClick() {
+            // Track the Book Now button click
+            if (this.userChatSessionId && this.config.bookNowText) {
+                try {
+                    await trackButtonClick(this.userChatSessionId, this.config.bookNowText);
+                } catch (error) {
+                    console.error('Failed to track Book Now button click:', error);
+                }
+            }
+
+            // Execute the original Book Now logic
+            if (this.config.bookNowUrl) {
+                window.open(this.config.bookNowUrl, '_blank');
+            } else {
+                alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.');
+            }
+        }
+
+        async handleSendEmailClick() {
+            // Track the Send Email button click
+            if (this.userChatSessionId && this.config.sendEmailText) {
+                try {
+                    await trackButtonClick(this.userChatSessionId, this.config.sendEmailText);
+                } catch (error) {
+                    console.error('Failed to track Send Email button click:', error);
+                }
+            }
+
+            // Execute the original Send Email logic
+            this.showEmailForm();
         }
 
         closeChat() {

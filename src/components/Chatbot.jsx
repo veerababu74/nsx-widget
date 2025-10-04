@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction, sendEmail, getClinicSettings, getStarterQuestions, getDoctorDetails, getWidgetKeyByWebUrl } from '../services/chatApi';
+import { fetchImprovedChatResponse, clearImprovedChatSession, saveReaction, sendEmail, getClinicSettings, getStarterQuestions, getDoctorDetails, getWidgetKeyByWebUrl, fetchUserIP, insertUserChatSession, trackButtonClick } from '../services/chatApi';
 import './Chatbot.css';
 
 const Chatbot = () => {
@@ -14,6 +14,9 @@ const Chatbot = () => {
   const [showStarterQuestions, setShowStarterQuestions] = useState(true); // Control starter questions visibility
   const [doctorDetails, setDoctorDetails] = useState(null); // Store doctor details
   const [chatbotId, setChatbotId] = useState(null); // Store dynamically fetched chatbot ID
+  const [userIP, setUserIP] = useState(null); // Store user's IP address
+  const [sessionTracked, setSessionTracked] = useState(false); // Track if session has been recorded
+  const [userChatSessionId, setUserChatSessionId] = useState(null); // Store the session ID from API
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -40,6 +43,39 @@ const Chatbot = () => {
     
     fetchChatbotId();
   }, []);
+
+  // Fetch user's IP address on component mount
+  useEffect(() => {
+    const fetchIP = async () => {
+      try {
+        const ip = await fetchUserIP();
+        setUserIP(ip);
+        console.log('User IP fetched:', ip);
+      } catch (error) {
+        console.error('Failed to fetch user IP:', error);
+      }
+    };
+    
+    fetchIP();
+  }, []);
+
+  // Track session when chatbot is opened for the first time
+  useEffect(() => {
+    const trackSession = async () => {
+      if (isOpen && userIP && !sessionTracked) {
+        try {
+          const sessionId = await insertUserChatSession(userIP);
+          setUserChatSessionId(sessionId); // Store the returned session ID
+          setSessionTracked(true);
+          console.log('Session tracked for IP:', userIP, 'Session ID:', sessionId);
+        } catch (error) {
+          console.error('Failed to track session:', error);
+        }
+      }
+    };
+    
+    trackSession();
+  }, [isOpen, userIP, sessionTracked]);
 
   // Load doctor details and set initial welcome message (depends on chatbotId)
   useEffect(() => {
@@ -328,12 +364,40 @@ const Chatbot = () => {
   };
 
   // Email form handlers
-  const handleShowEmailForm = () => {
+  const handleShowEmailForm = async () => {
     setShowEmailForm(true);
+    
+    // Track the Send Email button click
+    if (userChatSessionId && clinicSettings?.SendAnEmailLabel) {
+      try {
+        await trackButtonClick(userChatSessionId, clinicSettings.SendAnEmailLabel);
+      } catch (error) {
+        console.error('Failed to track Send Email button click:', error);
+      }
+    }
   };
 
   const handleHideEmailForm = () => {
     setShowEmailForm(false);
+  };
+
+  // Book Now button handler
+  const handleBookNowClick = async () => {
+    // Track the Book Now button click
+    if (userChatSessionId && clinicSettings?.BookNowLabel) {
+      try {
+        await trackButtonClick(userChatSessionId, clinicSettings.BookNowLabel);
+      } catch (error) {
+        console.error('Failed to track Book Now button click:', error);
+      }
+    }
+
+    // Execute the original Book Now logic
+    if (clinicSettings?.BookNowUrl) {
+      window.open(clinicSettings.BookNowUrl, '_blank');
+    } else {
+      alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.');
+    }
   };
 
   const handleEmailSubmit = async (e) => {
@@ -563,13 +627,7 @@ const Chatbot = () => {
           {clinicSettings?.BookNowShow === 'True' && (
             <button 
               className="action-btn" 
-              onClick={() => {
-                if (clinicSettings?.BookNowUrl) {
-                  window.open(clinicSettings.BookNowUrl, '_blank');
-                } else {
-                  alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.');
-                }
-              }}
+              onClick={handleBookNowClick}
             >
               {clinicSettings?.BookNowLabel || 'book now'}
             </button>

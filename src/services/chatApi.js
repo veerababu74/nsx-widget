@@ -4,6 +4,124 @@ const API_BASE_URL = import.meta.env.DEV
     ? '' 
     : (import.meta.env.VITE_API_BASE_URL || 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net');
 
+// Session tracking API URL
+const SESSION_API_URL = 'https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net';
+
+/**
+ * Fetch user's IP address using a public IP service
+ * @returns {Promise<string>} - The user's IP address
+ */
+export const fetchUserIP = async () => {
+    try {
+        // Try multiple IP services for reliability
+        const ipServices = [
+            'https://api.ipify.org?format=json',
+            'https://ipapi.co/json/',
+            'https://httpbin.org/ip'
+        ];
+
+        for (const service of ipServices) {
+            try {
+                const response = await fetch(service);
+                if (!response.ok) continue;
+                
+                const data = await response.json();
+                
+                // Different services return IP in different formats
+                if (data.ip) {
+                    return data.ip;
+                } else if (data.origin) {
+                    return data.origin; // httpbin.org format
+                }
+            } catch (error) {
+                console.warn(`Failed to fetch IP from ${service}:`, error);
+                continue;
+            }
+        }
+        
+        // Fallback - return a placeholder if all services fail
+        console.warn('All IP services failed, using fallback');
+        return '127.0.0.1';
+    } catch (error) {
+        console.error('Error fetching user IP:', error);
+        return '127.0.0.1'; // Fallback IP
+    }
+};
+
+/**
+ * Insert user chat session tracking when user starts a session
+ * @param {string} ipAddress - The user's IP address
+ * @returns {Promise<string>} - The session ID returned from the API
+ */
+export const insertUserChatSession = async (ipAddress) => {
+    try {
+        const sessionStartTime = new Date().toISOString();
+        
+        const requestPayload = {
+            IPAddress: ipAddress,
+            SessionStartTime: sessionStartTime
+        };
+
+        const response = await fetch(`${SESSION_API_URL}/UserChatSession_Widget/Insert`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': 'text/plain',
+            },
+            body: JSON.stringify(requestPayload),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const sessionId = await response.text();
+        console.log('User chat session inserted with ID:', sessionId);
+        return sessionId.trim(); // Return the session ID for storage
+    } catch (error) {
+        console.error('Error inserting user chat session:', error);
+        throw new Error('Failed to initialize chat session tracking.');
+    }
+};
+
+/**
+ * Track button clicks (Book Now, Send Email, etc.)
+ * @param {string} userChatSessionId - The session ID from insertUserChatSession
+ * @param {string} buttonLabel - The label of the button that was clicked
+ * @returns {Promise<string>} - The API response
+ */
+export const trackButtonClick = async (userChatSessionId, buttonLabel) => {
+    try {
+        const timestamp = new Date().toISOString();
+        
+        const requestPayload = {
+            UserChatSessionId: userChatSessionId,
+            Click: buttonLabel,
+            Timestamp: timestamp
+        };
+
+        const response = await fetch(`${SESSION_API_URL}/BookNowClicks_Widget/Insert`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': 'text/plain',
+            },
+            body: JSON.stringify(requestPayload),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.text();
+        console.log('Button click tracked:', buttonLabel, data);
+        return data;
+    } catch (error) {
+        console.error('Error tracking button click:', error);
+        throw new Error('Failed to track button click.');
+    }
+};
+
 /**
  * Get widget key (chatbot ID) by website URL
  * @param {string} webUrl - The website URL to get the chatbot ID for
