@@ -368,6 +368,11 @@
 
     async function trackButtonClick(userChatSessionId, buttonLabel, chatbotId = null) {
         try {
+            console.log('Widget - trackButtonClick called with:');
+            console.log('- userChatSessionId:', userChatSessionId);
+            console.log('- buttonLabel:', buttonLabel);
+            console.log('- chatbotId:', chatbotId);
+            
             const timestamp = new Date().toISOString();
             
             const requestPayload = {
@@ -1682,11 +1687,13 @@
         async trackSession() {
             if (this.userIP && this.config.chatbotId && !this.sessionTracked) {
                 try {
-                    console.log('Tracking session with chatbot ID:', this.config.chatbotId);
+                    console.log('Widget - About to call insertUserChatSession with IP:', this.userIP, 'chatbotId:', this.config.chatbotId);
                     const sessionId = await insertUserChatSession(this.userIP, this.config.chatbotId);
+                    console.log('Widget - insertUserChatSession returned sessionId:', sessionId);
                     this.userChatSessionId = sessionId; // Store the returned session ID
                     this.sessionTracked = true;
                     console.log('Widget session tracked for IP:', this.userIP, 'Session ID:', sessionId);
+                    console.log('Widget - this.userChatSessionId is now:', this.userChatSessionId);
                 } catch (error) {
                     console.error('Failed to track widget session:', error);
                 }
@@ -1701,6 +1708,9 @@
 
         async handleBookNowClick() {
             // Track the Book Now button click
+            console.log('Widget - handleBookNowClick - this.userChatSessionId:', this.userChatSessionId);
+            console.log('Widget - handleBookNowClick - this.config.bookNowText:', this.config.bookNowText);
+            
             if (this.userChatSessionId && this.config.bookNowText) {
                 try {
                     await trackButtonClick(this.userChatSessionId, this.config.bookNowText, this.config.chatbotId);
@@ -1719,6 +1729,9 @@
 
         async handleSendEmailClick() {
             // Track the Send Email button click
+            console.log('Widget - handleSendEmailClick - this.userChatSessionId:', this.userChatSessionId);
+            console.log('Widget - handleSendEmailClick - this.config.sendEmailText:', this.config.sendEmailText);
+            
             if (this.userChatSessionId && this.config.sendEmailText) {
                 try {
                     await trackButtonClick(this.userChatSessionId, this.config.sendEmailText, this.config.chatbotId);

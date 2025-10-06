@@ -101,6 +101,11 @@ export const insertUserChatSession = async (ipAddress, chatbotId = null) => {
  */
 export const trackButtonClick = async (userChatSessionId, buttonLabel, chatbotId = null) => {
     try {
+        console.log('trackButtonClick called with:');
+        console.log('- userChatSessionId:', userChatSessionId);
+        console.log('- buttonLabel:', buttonLabel);
+        console.log('- chatbotId:', chatbotId);
+        
         const timestamp = new Date().toISOString();
         
         const requestPayload = {
