@@ -64,7 +64,7 @@ const Chatbot = () => {
     const trackSession = async () => {
       if (isOpen && userIP && !sessionTracked) {
         try {
-          const sessionId = await insertUserChatSession(userIP);
+          const sessionId = await insertUserChatSession(userIP, chatbotId);
           setUserChatSessionId(sessionId); // Store the returned session ID
           setSessionTracked(true);
           console.log('Session tracked for IP:', userIP, 'Session ID:', sessionId);

@@ -51,9 +51,10 @@ export const fetchUserIP = async () => {
 /**
  * Insert user chat session tracking when user starts a session
  * @param {string} ipAddress - The user's IP address
+ * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<string>} - The session ID returned from the API
  */
-export const insertUserChatSession = async (ipAddress) => {
+export const insertUserChatSession = async (ipAddress, chatbotId = null) => {
     try {
         const sessionStartTime = new Date().toISOString();
         
@@ -62,12 +63,19 @@ export const insertUserChatSession = async (ipAddress) => {
             SessionStartTime: sessionStartTime
         };
 
+        const headers = {
+            'Content-Type': 'application/json',
+            'accept': 'text/plain',
+        };
+
+        // Add x-widget-key header if chatbotId is provided
+        if (chatbotId) {
+            headers['x-widget-key'] = chatbotId;
+        }
+
         const response = await fetch(`${SESSION_API_URL}/UserChatSession_Widget/Insert`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': 'text/plain',
-            },
+            headers: headers,
             body: JSON.stringify(requestPayload),
         });
 

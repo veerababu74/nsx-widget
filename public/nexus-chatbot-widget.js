@@ -338,7 +338,7 @@
         }
     }
 
-    async function insertUserChatSession(ipAddress) {
+    async function insertUserChatSession(ipAddress, chatbotId = null) {
         try {
             const sessionStartTime = new Date().toISOString();
             
@@ -347,12 +347,19 @@
                 SessionStartTime: sessionStartTime
             };
 
+            const headers = {
+                'Content-Type': 'application/json',
+                'accept': 'text/plain',
+            };
+
+            // Add x-widget-key header if chatbotId is provided
+            if (chatbotId) {
+                headers['x-widget-key'] = chatbotId;
+            }
+
             const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/UserChatSession_Widget/Insert', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'accept': 'text/plain',
-                },
+                headers: headers,
                 body: JSON.stringify(requestPayload),
             });
 
@@ -1673,7 +1680,7 @@
         async trackSession() {
             if (this.userIP && !this.sessionTracked) {
                 try {
-                    const sessionId = await insertUserChatSession(this.userIP);
+                    const sessionId = await insertUserChatSession(this.userIP, this.chatbotId);
                     this.userChatSessionId = sessionId; // Store the returned session ID
                     this.sessionTracked = true;
                     console.log('Widget session tracked for IP:', this.userIP, 'Session ID:', sessionId);
