@@ -19,11 +19,6 @@ const Chatbot = () => {
   const [userChatSessionId, setUserChatSessionId] = useState(null); // Store the session ID from API
   const messagesEndRef = useRef(null);
 
-  // Debug: Track userChatSessionId changes
-  useEffect(() => {
-    console.log('userChatSessionId state changed to:', userChatSessionId);
-  }, [userChatSessionId]);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -69,13 +64,10 @@ const Chatbot = () => {
     const trackSession = async () => {
       if (isOpen && userIP && chatbotId && !sessionTracked) {
         try {
-          console.log('About to call insertUserChatSession with IP:', userIP, 'chatbotId:', chatbotId);
           const sessionId = await insertUserChatSession(userIP, chatbotId);
-          console.log('insertUserChatSession returned sessionId:', sessionId);
           setUserChatSessionId(sessionId); // Store the returned session ID
           setSessionTracked(true);
           console.log('Session tracked for IP:', userIP, 'Session ID:', sessionId);
-          console.log('userChatSessionId state will be set to:', sessionId);
         } catch (error) {
           console.error('Failed to track session:', error);
         }
@@ -377,9 +369,6 @@ const Chatbot = () => {
     setShowEmailForm(true);
     
     // Track the Send Email button click
-    console.log('handleShowEmailForm - userChatSessionId:', userChatSessionId);
-    console.log('handleShowEmailForm - clinicSettings?.SendAnEmailLabel:', clinicSettings?.SendAnEmailLabel);
-    
     if (userChatSessionId && clinicSettings?.SendAnEmailLabel) {
       try {
         await trackButtonClick(userChatSessionId, clinicSettings.SendAnEmailLabel, chatbotId);
@@ -396,9 +385,6 @@ const Chatbot = () => {
   // Book Now button handler
   const handleBookNowClick = async () => {
     // Track the Book Now button click
-    console.log('handleBookNowClick - userChatSessionId:', userChatSessionId);
-    console.log('handleBookNowClick - clinicSettings?.BookNowLabel:', clinicSettings?.BookNowLabel);
-    
     if (userChatSessionId && clinicSettings?.BookNowLabel) {
       try {
         await trackButtonClick(userChatSessionId, clinicSettings.BookNowLabel, chatbotId);
@@ -643,6 +629,8 @@ const Chatbot = () => {
             <button 
               className="action-btn" 
               onClick={handleBookNowClick}
+              disabled={!userChatSessionId}
+              title={!userChatSessionId ? "Initializing session..." : ""}
             >
               {clinicSettings?.BookNowLabel || 'book now'}
             </button>
@@ -651,6 +639,8 @@ const Chatbot = () => {
             <button 
               className="action-btn secondary" 
               onClick={handleShowEmailForm}
+              disabled={!userChatSessionId}
+              title={!userChatSessionId ? "Initializing session..." : ""}
             >
               {clinicSettings?.SendAnEmailLabel || 'Send an email'}
             </button>

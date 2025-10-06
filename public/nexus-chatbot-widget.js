@@ -368,11 +368,6 @@
 
     async function trackButtonClick(userChatSessionId, buttonLabel, chatbotId = null) {
         try {
-            console.log('Widget - trackButtonClick called with:');
-            console.log('- userChatSessionId:', userChatSessionId);
-            console.log('- buttonLabel:', buttonLabel);
-            console.log('- chatbotId:', chatbotId);
-            
             const timestamp = new Date().toISOString();
             
             const requestPayload = {
@@ -1146,6 +1141,13 @@
                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
                 }
 
+                .nexus-action-btn:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                    transform: none !important;
+                    box-shadow: none !important;
+                }
+
                 .nexus-action-btn.secondary {
                     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                 }
@@ -1463,6 +1465,9 @@
             // Ensure proper positioning within viewport
             this.adjustPosition();
             
+            // Initialize button states (disabled until session is established)
+            this.updateActionButtonStates();
+            
             // Render initial messages
             this.renderMessages();
         }
@@ -1547,7 +1552,7 @@
             // Book Now button
             if (this.config.bookNowShow) {
                 buttonsHtml += `
-                    <button class="nexus-action-btn" id="nexus-book-now-btn">
+                    <button class="nexus-action-btn" id="nexus-book-now-btn" disabled title="Initializing session...">
                         ${this.config.bookNowText}
                     </button>
                 `;
@@ -1556,7 +1561,7 @@
             // Send Email button
             if (this.config.sendEmailShow) {
                 buttonsHtml += `
-                    <button class="nexus-action-btn secondary" id="nexus-send-email-btn">
+                    <button class="nexus-action-btn secondary" id="nexus-send-email-btn" disabled title="Initializing session...">
                         ${this.config.sendEmailText}
                     </button>
                 `;
@@ -1564,6 +1569,33 @@
             
             actionButtons.innerHTML = buttonsHtml;
             return actionButtons;
+        }
+
+        updateActionButtonStates() {
+            const bookNowBtn = this.container?.querySelector('#nexus-book-now-btn');
+            const sendEmailBtn = this.container?.querySelector('#nexus-send-email-btn');
+            
+            if (this.userChatSessionId) {
+                // Enable buttons when session is established
+                if (bookNowBtn) {
+                    bookNowBtn.disabled = false;
+                    bookNowBtn.removeAttribute('title');
+                }
+                if (sendEmailBtn) {
+                    sendEmailBtn.disabled = false;
+                    sendEmailBtn.removeAttribute('title');
+                }
+            } else {
+                // Disable buttons when no session
+                if (bookNowBtn) {
+                    bookNowBtn.disabled = true;
+                    bookNowBtn.title = "Initializing session...";
+                }
+                if (sendEmailBtn) {
+                    sendEmailBtn.disabled = true;
+                    sendEmailBtn.title = "Initializing session...";
+                }
+            }
         }
 
         createEmailForm() {
@@ -1687,13 +1719,13 @@
         async trackSession() {
             if (this.userIP && this.config.chatbotId && !this.sessionTracked) {
                 try {
-                    console.log('Widget - About to call insertUserChatSession with IP:', this.userIP, 'chatbotId:', this.config.chatbotId);
                     const sessionId = await insertUserChatSession(this.userIP, this.config.chatbotId);
-                    console.log('Widget - insertUserChatSession returned sessionId:', sessionId);
                     this.userChatSessionId = sessionId; // Store the returned session ID
                     this.sessionTracked = true;
                     console.log('Widget session tracked for IP:', this.userIP, 'Session ID:', sessionId);
-                    console.log('Widget - this.userChatSessionId is now:', this.userChatSessionId);
+                    
+                    // Update button states after session is established
+                    this.updateActionButtonStates();
                 } catch (error) {
                     console.error('Failed to track widget session:', error);
                 }
@@ -1708,9 +1740,6 @@
 
         async handleBookNowClick() {
             // Track the Book Now button click
-            console.log('Widget - handleBookNowClick - this.userChatSessionId:', this.userChatSessionId);
-            console.log('Widget - handleBookNowClick - this.config.bookNowText:', this.config.bookNowText);
-            
             if (this.userChatSessionId && this.config.bookNowText) {
                 try {
                     await trackButtonClick(this.userChatSessionId, this.config.bookNowText, this.config.chatbotId);
@@ -1729,9 +1758,6 @@
 
         async handleSendEmailClick() {
             // Track the Send Email button click
-            console.log('Widget - handleSendEmailClick - this.userChatSessionId:', this.userChatSessionId);
-            console.log('Widget - handleSendEmailClick - this.config.sendEmailText:', this.config.sendEmailText);
-            
             if (this.userChatSessionId && this.config.sendEmailText) {
                 try {
                     await trackButtonClick(this.userChatSessionId, this.config.sendEmailText, this.config.chatbotId);
