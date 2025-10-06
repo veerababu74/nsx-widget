@@ -4,7 +4,7 @@
 (function() {
     'use strict';
     
-    // Configuration
+    // Configuration - All dynamic values will be fetched from APIs
     const CHATBOT_CONFIG = {
         // Use proxy in development (localhost), direct URL in production
         apiBaseUrl: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
@@ -15,17 +15,18 @@
         position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left
         theme: 'default', // default, dark, custom
         autoOpen: false,
-        welcomeMessage: "Hi! Ask me about our services, fees, or how to get started.",
-        clinicName: "Clinic Name",
-        logoUrl: "",
-        privacyNoticeText: "I'm an educational assistant. I don't provide medical advice or diagnosis.",
-        privacyNoticeUrl: "",
-        bookNowText: "book now",
-        bookNowUrl: "",
-        bookNowShow: true,
-        sendEmailText: "Send an email", 
-        sendEmailShow: true,
-        brandColour: "RGB(173, 216, 230)",
+        // All the following will be fetched from Settings API
+        welcomeMessage: null, // Fetched from Settings API
+        clinicName: null, // Fetched from Settings API
+        logoUrl: null, // Fetched from Settings API
+        privacyNoticeText: null, // Fetched from Settings API
+        privacyNoticeUrl: null, // Fetched from Settings API
+        bookNowText: null, // Fetched from Settings API
+        bookNowUrl: null, // Fetched from Settings API
+        bookNowShow: null, // Fetched from Settings API
+        sendEmailText: null, // Fetched from Settings API
+        sendEmailShow: null, // Fetched from Settings API
+        brandColour: null, // Fetched from Settings API
         chatbotId: null // Will be fetched dynamically based on website URL
     };
 
@@ -493,11 +494,11 @@
                 ];
             } catch (error) {
                 console.error('Failed to load doctor details for widget:', error);
-                // Set fallback welcome message
+                // Set fallback welcome message from clinic settings (loaded from API)
                 this.messages = [
                     {
                         id: 1,
-                        text: this.config.welcomeMessage,
+                        text: this.config.welcomeMessage || "Hi! How can I help you today?",
                         sender: 'bot',
                         timestamp: new Date()
                     }
@@ -508,23 +509,38 @@
         async loadClinicSettings() {
             try {
                 const settings = await getClinicSettings(this.config.chatbotId);
-                // Update config with API settings
+                // Update config with all API settings - remove all fallback defaults
                 this.config = {
                     ...this.config,
-                    clinicName: settings.ClinicName || this.config.clinicName,
+                    welcomeMessage: settings.WelcomeMessage || "Hi! How can I help you today?",
+                    clinicName: settings.ClinicName || "Our Clinic",
                     logoUrl: settings.LogoUrl || '',
+                    privacyNoticeText: settings.PrivacyNoticeText || "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
                     privacyNoticeUrl: settings.PrivacyNoticeUrl || '',
                     bookNowUrl: settings.BookNowUrl || '',
-                    bookNowText: settings.BookNowLabel || this.config.bookNowText,
+                    bookNowText: settings.BookNowLabel || "Book Now",
                     bookNowShow: settings.BookNowShow === 'True',
-                    sendEmailText: settings.SendAnEmailLabel || this.config.sendEmailText,
+                    sendEmailText: settings.SendAnEmailLabel || "Send Email",
                     sendEmailShow: settings.SendAnEmailShow === 'True',
                     brandColour: settings.BrandColour || '#667eea'
                 };
                 console.log('Widget clinic settings loaded:', settings);
             } catch (error) {
                 console.error('Failed to load clinic settings for widget:', error);
-                // Continue with default settings
+                // Set minimal fallback values if API fails
+                this.config = {
+                    ...this.config,
+                    welcomeMessage: "Hi! How can I help you today?",
+                    clinicName: "Our Clinic",
+                    logoUrl: '',
+                    privacyNoticeText: "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
+                    privacyNoticeUrl: '',
+                    bookNowText: "Book Now",
+                    bookNowShow: true,
+                    sendEmailText: "Send Email",
+                    sendEmailShow: true,
+                    brandColour: '#667eea'
+                };
             }
         }
 
@@ -535,12 +551,9 @@
                 console.log('Widget starter questions loaded:', questions);
             } catch (error) {
                 console.error('Failed to load starter questions for widget:', error);
-                // Set fallback starter questions for testing
-                this.starterQuestions = {
-                    q1: "Who is this program for?",
-                    q2: "Fees & availability",
-                    q3: "How to get started?"
-                };
+                // Don't set fallback questions - hide starter questions if API fails
+                this.starterQuestions = null;
+                this.showStarterQuestions = false;
             }
         }
 
@@ -551,7 +564,7 @@
         }
 
         getWidgetStyles() {
-            const brandColor = this.config.brandColour || 'RGB(173, 216, 230)';
+            const brandColor = this.config.brandColour || '#667eea';
             const gradientColor = `linear-gradient(135deg, ${brandColor}, #764ba2 100%)`;
             
             return `
@@ -1678,15 +1691,22 @@
         }
 
         async trackSession() {
-            if (this.userIP && !this.sessionTracked) {
+            if (this.userIP && this.config.chatbotId && !this.sessionTracked) {
                 try {
-                    const sessionId = await insertUserChatSession(this.userIP, this.chatbotId);
+                    console.log('Tracking session with chatbot ID:', this.config.chatbotId);
+                    const sessionId = await insertUserChatSession(this.userIP, this.config.chatbotId);
                     this.userChatSessionId = sessionId; // Store the returned session ID
                     this.sessionTracked = true;
                     console.log('Widget session tracked for IP:', this.userIP, 'Session ID:', sessionId);
                 } catch (error) {
                     console.error('Failed to track widget session:', error);
                 }
+            } else {
+                console.log('Session tracking skipped - Missing requirements:', {
+                    userIP: !!this.userIP,
+                    chatbotId: !!this.config.chatbotId,
+                    sessionTracked: this.sessionTracked
+                });
             }
         }
 
@@ -1694,7 +1714,7 @@
             // Track the Book Now button click
             if (this.userChatSessionId && this.config.bookNowText) {
                 try {
-                    await trackButtonClick(this.userChatSessionId, this.config.bookNowText, this.chatbotId);
+                    await trackButtonClick(this.userChatSessionId, this.config.bookNowText, this.config.chatbotId);
                 } catch (error) {
                     console.error('Failed to track Book Now button click:', error);
                 }
@@ -1712,7 +1732,7 @@
             // Track the Send Email button click
             if (this.userChatSessionId && this.config.sendEmailText) {
                 try {
-                    await trackButtonClick(this.userChatSessionId, this.config.sendEmailText, this.chatbotId);
+                    await trackButtonClick(this.userChatSessionId, this.config.sendEmailText, this.config.chatbotId);
                 } catch (error) {
                     console.error('Failed to track Send Email button click:', error);
                 }

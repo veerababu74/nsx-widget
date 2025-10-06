@@ -62,7 +62,7 @@ const Chatbot = () => {
   // Track session when chatbot is opened for the first time
   useEffect(() => {
     const trackSession = async () => {
-      if (isOpen && userIP && !sessionTracked) {
+      if (isOpen && userIP && chatbotId && !sessionTracked) {
         try {
           const sessionId = await insertUserChatSession(userIP, chatbotId);
           setUserChatSessionId(sessionId); // Store the returned session ID
@@ -75,7 +75,7 @@ const Chatbot = () => {
     };
     
     trackSession();
-  }, [isOpen, userIP, sessionTracked]);
+  }, [isOpen, userIP, chatbotId, sessionTracked]);
 
   // Load doctor details and set initial welcome message (depends on chatbotId)
   useEffect(() => {
@@ -101,11 +101,11 @@ const Chatbot = () => {
         ]);
       } catch (error) {
         console.error('Failed to load doctor details:', error);
-        // Set fallback welcome message
+        // Set fallback welcome message using clinic settings (will be loaded separately)
         setMessages([
           {
             id: 1,
-            text: "Hi! Ask me about our services, fees, or how to get started.",
+            text: clinicSettings?.WelcomeMessage || "Hi! How can I help you today?",
             sender: 'bot',
             timestamp: new Date()
           }
@@ -114,7 +114,7 @@ const Chatbot = () => {
     };
     
     loadDoctorDetails();
-  }, [chatbotId]);
+  }, [chatbotId, clinicSettings]);
 
   // Load clinic settings on component mount (depends on chatbotId)
   useEffect(() => {
@@ -132,23 +132,25 @@ const Chatbot = () => {
         }
       } catch (error) {
         console.error('Failed to load clinic settings:', error);
-        // Set default settings if loading fails
+        // Set minimal fallback values if API completely fails
         setClinicSettings({
-          ClinicName: "Clinic Name",
-          BrandColour: "RGB(173, 216, 230)",
+          ClinicName: "Our Clinic",
+          BrandColour: "#667eea",
           LogoUrl: "",
           PrivacyNoticeUrl: "",
+          PrivacyNoticeText: "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
+          WelcomeMessage: "Hi! How can I help you today?",
           RetentionDays: "30",
           HandOffEmails: "",
           BookNowUrl: "",
-          BookNowLabel: "book now",
+          BookNowLabel: "Book Now",
           BookNowShow: "True",
-          SendAnEmailLabel: "Send an email",
+          SendAnEmailLabel: "Send Email",
           SendAnEmailShow: "True"
         });
         
-        // Apply default brand color
-        document.documentElement.style.setProperty('--nexus-brand-color', 'RGB(173, 216, 230)');
+        // Apply fallback brand color
+        document.documentElement.style.setProperty('--nexus-brand-color', '#667eea');
       }
     };
     
@@ -166,12 +168,9 @@ const Chatbot = () => {
         console.log('Starter questions loaded:', questions);
       } catch (error) {
         console.error('Failed to load starter questions:', error);
-        // Set fallback starter questions for testing
-        setStarterQuestions({
-          q1: "Who is this program for?",
-          q2: "Fees & availability",
-          q3: "How to get started?"
-        });
+        // Don't set fallback questions - hide starter questions if API fails
+        setStarterQuestions(null);
+        setShowStarterQuestions(false);
       }
     };
     
