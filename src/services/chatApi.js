@@ -180,14 +180,11 @@ export const getWidgetKeyByWebUrl = async (webUrl = null) => {
  * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<Object>} - The full AI response object
  */
-export const fetchImprovedChatResponse = async (message, sessionId = null, indexName = "default", chatbotId = null) => {
+export const fetchImprovedChatResponse = async (message, sessionId, indexName = "default", chatbotId = null) => {
     try {
-        // Generate session ID if not provided
-        const currentSessionId = sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
         const requestPayload = {
             message: message,
-            session_id: currentSessionId,
+            session_id: sessionId,
             index_name: indexName
         };
 

@@ -10,7 +10,6 @@
         apiBaseUrl: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
             ? '' 
             : 'https://neurax-python-be-emhfejathhhpe6h3.uksouth-01.azurewebsites.net',
-        sessionId: null, // Will be generated dynamically
         indexName: 'default',
         position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left
         theme: 'default', // default, dark, custom
@@ -29,16 +28,6 @@
         brandColour: null, // Fetched from Settings API
         chatbotId: null // Will be fetched dynamically based on website URL
     };
-
-    // Generate unique session ID
-    function generateSessionId() {
-        return `widget_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    }
-
-    // Initialize session ID
-    if (!CHATBOT_CONFIG.sessionId) {
-        CHATBOT_CONFIG.sessionId = generateSessionId();
-    }
 
     // Get widget key (chatbot ID) by website URL
     async function getWidgetKeyByWebUrl(webUrl = null) {
@@ -71,11 +60,11 @@
     }
 
     // API Functions
-    async function fetchChatResponse(message, chatbotId = null) {
+    async function fetchChatResponse(message, sessionId, chatbotId = null) {
         try {
             const requestPayload = {
                 message: message,
-                session_id: CHATBOT_CONFIG.sessionId,
+                session_id: sessionId,
                 index_name: CHATBOT_CONFIG.indexName
             };
 
@@ -107,7 +96,7 @@
         }
     }
 
-    async function clearChatSession(sessionId = CHATBOT_CONFIG.sessionId, chatbotId = null) {
+    async function clearChatSession(sessionId, chatbotId = null) {
         try {
             const headers = {
                 'Content-Type': 'application/json',
@@ -1751,7 +1740,9 @@
 
         async clearChat() {
             try {
-                await clearChatSession(this.config.sessionId, this.config.chatbotId);
+                if (this.userChatSessionId) {
+                    await clearChatSession(this.userChatSessionId, this.config.chatbotId);
+                }
                 
                 // Create personalized welcome message
                 const doctorFirstName = this.doctorDetails?.DoctorFirstName || this.doctorDetails?.StaffFirstName || 'Doctor';
@@ -1797,7 +1788,7 @@
             this.updateInputState();
 
             try {
-                const response = await fetchChatResponse(message, this.config.chatbotId);
+                const response = await fetchChatResponse(message, this.userChatSessionId, this.config.chatbotId);
                 
                 const botMessage = {
                     id: Date.now() + 1,
@@ -1806,7 +1797,7 @@
                     timestamp: new Date(),
                     metadata: response,
                     message_id: response.message_id,
-                    session_id: response.session_id || CHATBOT_CONFIG.sessionId,
+                    session_id: response.session_id || this.userChatSessionId,
                     userReaction: null, // Track user's reaction: null, true (like), false (dislike)
                     followUpQuestion: response.follow_up_question,
                     suggestedTopics: response.suggested_topics
@@ -1850,7 +1841,7 @@
             this.updateInputState();
 
             try {
-                const response = await fetchChatResponse(questionText, this.config.chatbotId);
+                const response = await fetchChatResponse(questionText, this.userChatSessionId, this.config.chatbotId);
                 
                 const botMessage = {
                     id: Date.now() + 1,
@@ -1859,7 +1850,7 @@
                     timestamp: new Date(),
                     metadata: response,
                     message_id: response.message_id,
-                    session_id: response.session_id || CHATBOT_CONFIG.sessionId,
+                    session_id: response.session_id || this.userChatSessionId,
                     userReaction: null, // Track user's reaction: null, true (like), false (dislike)
                     followUpQuestion: response.follow_up_question,
                     suggestedTopics: response.suggested_topics

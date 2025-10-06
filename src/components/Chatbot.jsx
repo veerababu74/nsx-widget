@@ -195,7 +195,7 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetchImprovedChatResponse(inputMessage, null, "default", chatbotId);
+      const response = await fetchImprovedChatResponse(inputMessage, userChatSessionId, "default", chatbotId);
       
       const botMessage = {
         id: Date.now() + 1,
@@ -244,7 +244,7 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetchImprovedChatResponse(questionText, null, "default", chatbotId);
+      const response = await fetchImprovedChatResponse(questionText, userChatSessionId, "default", chatbotId);
       
       const botMessage = {
         id: Date.now() + 1,
@@ -285,7 +285,9 @@ const Chatbot = () => {
 
   const clearChat = async () => {
     try {
-      await clearImprovedChatSession(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, chatbotId);
+      if (userChatSessionId) {
+        await clearImprovedChatSession(userChatSessionId, chatbotId);
+      }
       
       // Create personalized welcome message
       const doctorFirstName = doctorDetails?.DoctorFirstName || doctorDetails?.StaffFirstName || 'Doctor';
