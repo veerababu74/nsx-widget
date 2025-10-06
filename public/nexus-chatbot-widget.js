@@ -368,7 +368,15 @@
 
     async function trackButtonClick(userChatSessionId, buttonLabel, chatbotId = null) {
         try {
-            const timestamp = new Date().toISOString();
+            // Format timestamp as "16-Sep-2025 14:30:45"
+            const now = new Date();
+            const day = now.getDate().toString().padStart(2, '0');
+            const month = now.toLocaleString('en', { month: 'short' });
+            const year = now.getFullYear();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timestamp = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
             
             const requestPayload = {
                 UserChatSessionId: userChatSessionId,
@@ -1141,13 +1149,6 @@
                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
                 }
 
-                .nexus-action-btn:disabled {
-                    opacity: 0.6;
-                    cursor: not-allowed;
-                    transform: none !important;
-                    box-shadow: none !important;
-                }
-
                 .nexus-action-btn.secondary {
                     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                 }
@@ -1465,9 +1466,6 @@
             // Ensure proper positioning within viewport
             this.adjustPosition();
             
-            // Initialize button states (disabled until session is established)
-            this.updateActionButtonStates();
-            
             // Render initial messages
             this.renderMessages();
         }
@@ -1552,7 +1550,7 @@
             // Book Now button
             if (this.config.bookNowShow) {
                 buttonsHtml += `
-                    <button class="nexus-action-btn" id="nexus-book-now-btn" disabled title="Initializing session...">
+                    <button class="nexus-action-btn" id="nexus-book-now-btn">
                         ${this.config.bookNowText}
                     </button>
                 `;
@@ -1561,7 +1559,7 @@
             // Send Email button
             if (this.config.sendEmailShow) {
                 buttonsHtml += `
-                    <button class="nexus-action-btn secondary" id="nexus-send-email-btn" disabled title="Initializing session...">
+                    <button class="nexus-action-btn secondary" id="nexus-send-email-btn">
                         ${this.config.sendEmailText}
                     </button>
                 `;
@@ -1569,33 +1567,6 @@
             
             actionButtons.innerHTML = buttonsHtml;
             return actionButtons;
-        }
-
-        updateActionButtonStates() {
-            const bookNowBtn = this.container?.querySelector('#nexus-book-now-btn');
-            const sendEmailBtn = this.container?.querySelector('#nexus-send-email-btn');
-            
-            if (this.userChatSessionId) {
-                // Enable buttons when session is established
-                if (bookNowBtn) {
-                    bookNowBtn.disabled = false;
-                    bookNowBtn.removeAttribute('title');
-                }
-                if (sendEmailBtn) {
-                    sendEmailBtn.disabled = false;
-                    sendEmailBtn.removeAttribute('title');
-                }
-            } else {
-                // Disable buttons when no session
-                if (bookNowBtn) {
-                    bookNowBtn.disabled = true;
-                    bookNowBtn.title = "Initializing session...";
-                }
-                if (sendEmailBtn) {
-                    sendEmailBtn.disabled = true;
-                    sendEmailBtn.title = "Initializing session...";
-                }
-            }
         }
 
         createEmailForm() {
@@ -1719,13 +1690,11 @@
         async trackSession() {
             if (this.userIP && this.config.chatbotId && !this.sessionTracked) {
                 try {
+                    console.log('Tracking session with chatbot ID:', this.config.chatbotId);
                     const sessionId = await insertUserChatSession(this.userIP, this.config.chatbotId);
                     this.userChatSessionId = sessionId; // Store the returned session ID
                     this.sessionTracked = true;
                     console.log('Widget session tracked for IP:', this.userIP, 'Session ID:', sessionId);
-                    
-                    // Update button states after session is established
-                    this.updateActionButtonStates();
                 } catch (error) {
                     console.error('Failed to track widget session:', error);
                 }

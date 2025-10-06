@@ -101,7 +101,15 @@ export const insertUserChatSession = async (ipAddress, chatbotId = null) => {
  */
 export const trackButtonClick = async (userChatSessionId, buttonLabel, chatbotId = null) => {
     try {
-        const timestamp = new Date().toISOString();
+        // Format timestamp as "16-Sep-2025 14:30:45"
+        const now = new Date();
+        const day = now.getDate().toString().padStart(2, '0');
+        const month = now.toLocaleString('en', { month: 'short' });
+        const year = now.getFullYear();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const timestamp = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
         
         const requestPayload = {
             UserChatSessionId: userChatSessionId,

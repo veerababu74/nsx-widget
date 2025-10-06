@@ -629,8 +629,6 @@ const Chatbot = () => {
             <button 
               className="action-btn" 
               onClick={handleBookNowClick}
-              disabled={!userChatSessionId}
-              title={!userChatSessionId ? "Initializing session..." : ""}
             >
               {clinicSettings?.BookNowLabel || 'book now'}
             </button>
@@ -639,8 +637,6 @@ const Chatbot = () => {
             <button 
               className="action-btn secondary" 
               onClick={handleShowEmailForm}
-              disabled={!userChatSessionId}
-              title={!userChatSessionId ? "Initializing session..." : ""}
             >
               {clinicSettings?.SendAnEmailLabel || 'Send an email'}
             </button>

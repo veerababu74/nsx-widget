@@ -833,13 +833,6 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.action-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
 .action-btn.secondary {
   background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
 }
