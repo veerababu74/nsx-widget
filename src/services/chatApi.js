@@ -88,9 +88,10 @@ export const insertUserChatSession = async (ipAddress) => {
  * Track button clicks (Book Now, Send Email, etc.)
  * @param {string} userChatSessionId - The session ID from insertUserChatSession
  * @param {string} buttonLabel - The label of the button that was clicked
+ * @param {string} chatbotId - Chatbot ID for widget key identification (optional)
  * @returns {Promise<string>} - The API response
  */
-export const trackButtonClick = async (userChatSessionId, buttonLabel) => {
+export const trackButtonClick = async (userChatSessionId, buttonLabel, chatbotId = null) => {
     try {
         const timestamp = new Date().toISOString();
         
@@ -100,12 +101,19 @@ export const trackButtonClick = async (userChatSessionId, buttonLabel) => {
             Timestamp: timestamp
         };
 
+        const headers = {
+            'Content-Type': 'application/json',
+            'accept': 'text/plain',
+        };
+
+        // Add x-widget-key header if chatbotId is provided
+        if (chatbotId) {
+            headers['x-widget-key'] = chatbotId;
+        }
+
         const response = await fetch(`${SESSION_API_URL}/BookNowClicks_Widget/Insert`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': 'text/plain',
-            },
+            headers: headers,
             body: JSON.stringify(requestPayload),
         });
 

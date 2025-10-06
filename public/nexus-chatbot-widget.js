@@ -369,7 +369,7 @@
         }
     }
 
-    async function trackButtonClick(userChatSessionId, buttonLabel) {
+    async function trackButtonClick(userChatSessionId, buttonLabel, chatbotId = null) {
         try {
             const timestamp = new Date().toISOString();
             
@@ -379,12 +379,19 @@
                 Timestamp: timestamp
             };
 
+            const headers = {
+                'Content-Type': 'application/json',
+                'accept': 'text/plain',
+            };
+
+            // Add x-widget-key header if chatbotId is provided
+            if (chatbotId) {
+                headers['x-widget-key'] = chatbotId;
+            }
+
             const response = await fetch('https://neurax-net-f2cwbugzh4gqd8hg.uksouth-01.azurewebsites.net/BookNowClicks_Widget/Insert', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'accept': 'text/plain',
-                },
+                headers: headers,
                 body: JSON.stringify(requestPayload),
             });
 
@@ -1680,7 +1687,7 @@
             // Track the Book Now button click
             if (this.userChatSessionId && this.config.bookNowText) {
                 try {
-                    await trackButtonClick(this.userChatSessionId, this.config.bookNowText);
+                    await trackButtonClick(this.userChatSessionId, this.config.bookNowText, this.chatbotId);
                 } catch (error) {
                     console.error('Failed to track Book Now button click:', error);
                 }
@@ -1698,7 +1705,7 @@
             // Track the Send Email button click
             if (this.userChatSessionId && this.config.sendEmailText) {
                 try {
-                    await trackButtonClick(this.userChatSessionId, this.config.sendEmailText);
+                    await trackButtonClick(this.userChatSessionId, this.config.sendEmailText, this.chatbotId);
                 } catch (error) {
                     console.error('Failed to track Send Email button click:', error);
                 }

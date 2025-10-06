@@ -370,7 +370,7 @@ const Chatbot = () => {
     // Track the Send Email button click
     if (userChatSessionId && clinicSettings?.SendAnEmailLabel) {
       try {
-        await trackButtonClick(userChatSessionId, clinicSettings.SendAnEmailLabel);
+        await trackButtonClick(userChatSessionId, clinicSettings.SendAnEmailLabel, chatbotId);
       } catch (error) {
         console.error('Failed to track Send Email button click:', error);
       }
@@ -386,7 +386,7 @@ const Chatbot = () => {
     // Track the Book Now button click
     if (userChatSessionId && clinicSettings?.BookNowLabel) {
       try {
-        await trackButtonClick(userChatSessionId, clinicSettings.BookNowLabel);
+        await trackButtonClick(userChatSessionId, clinicSettings.BookNowLabel, chatbotId);
       } catch (error) {
         console.error('Failed to track Book Now button click:', error);
       }
