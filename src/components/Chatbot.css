@@ -837,6 +837,10 @@
   background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
 }
 
+.action-btn.tertiary {
+  background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+}
+
 /* Email Form Modal Styles */
 .email-form-overlay {
   position: absolute;

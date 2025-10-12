@@ -25,6 +25,9 @@
         bookNowShow: null, // Fetched from Settings API
         sendEmailText: null, // Fetched from Settings API
         sendEmailShow: null, // Fetched from Settings API
+        ctaTwoText: null, // Fetched from Settings API
+        ctaTwoUrl: null, // Fetched from Settings API
+        ctaTwoShow: null, // Fetched from Settings API
         brandColour: null, // Fetched from Settings API
         chatbotId: null // Will be fetched dynamically based on website URL
     };
@@ -428,25 +431,94 @@
             this.showStarterQuestions = true;
             this.doctorDetails = null;
             
-            // Initialize asynchronously
-            this.init().catch(error => {
-                console.error('Failed to initialize chatbot widget:', error);
-                // Fallback to default initialization
-                this.createStyles();
-                this.createWidget();
-                this.attachEventListeners();
-            });
+            // Create basic widget first, then enhance with API data
+            this.createBasicWidget();
+            
+            // Initialize additional features asynchronously (non-blocking)
+            this.initializeEnhancements();
         }
 
-        async init() {
-            await this.fetchChatbotId();
-            await this.fetchIP(); // Fetch user's IP address
-            await this.loadDoctorDetails();
-            await this.loadClinicSettings();
-            await this.loadStarterQuestions();
+        createBasicWidget() {
+            // Set a basic welcome message first
+            this.messages = [
+                {
+                    id: 1,
+                    text: this.config.welcomeMessage || "Hi! How can I help you today?",
+                    sender: 'bot',
+                    timestamp: new Date()
+                }
+            ];
+            
             this.createStyles();
             this.createWidget();
             this.attachEventListeners();
+        }
+
+        async initializeEnhancements() {
+            try {
+                // Run all API calls in parallel but don't block widget creation
+                const promises = [
+                    this.fetchChatbotId().catch(e => console.warn('Failed to fetch chatbot ID:', e)),
+                    this.fetchIP().catch(e => console.warn('Failed to fetch IP:', e)),
+                    this.loadDoctorDetails().catch(e => console.warn('Failed to load doctor details:', e)),
+                    this.loadClinicSettings().catch(e => console.warn('Failed to load clinic settings:', e)),
+                    this.loadStarterQuestions().catch(e => console.warn('Failed to load starter questions:', e))
+                ];
+                
+                await Promise.allSettled(promises);
+                
+                // Update the widget with any successfully loaded data
+                this.updateWidgetWithEnhancements();
+                
+            } catch (error) {
+                console.warn('Some enhancements failed to load, but widget is still functional:', error);
+            }
+        }
+
+        updateWidgetWithEnhancements() {
+            // Update welcome message if clinic settings were loaded with IntroMessage
+            if (this.config.welcomeMessage && this.config.welcomeMessage !== "Hi! How can I help you today?") {
+                // Update the first message with IntroMessage from clinic settings
+                if (this.messages.length > 0) {
+                    this.messages[0].text = this.config.welcomeMessage;
+                    // Re-render messages if widget is open
+                    if (this.isOpen) {
+                        this.renderMessages();
+                    }
+                }
+            }
+            
+            // Update action buttons if clinic settings were loaded
+            const actionButtons = this.container?.querySelector('.nexus-action-buttons');
+            if (actionButtons) {
+                actionButtons.innerHTML = '';
+                const newActionButtons = this.createActionButtons();
+                actionButtons.innerHTML = newActionButtons.innerHTML;
+                this.attachActionButtonListeners();
+            }
+        }
+
+        attachActionButtonListeners() {
+            // Re-attach action button event listeners
+            const bookNowBtn = this.container.querySelector('#nexus-book-now-btn');
+            if (bookNowBtn) {
+                bookNowBtn.addEventListener('click', () => this.handleBookNowClick());
+            }
+
+            const sendEmailBtn = this.container.querySelector('#nexus-send-email-btn');
+            if (sendEmailBtn) {
+                sendEmailBtn.addEventListener('click', () => this.handleSendEmailClick());
+            }
+
+            const ctaTwoBtn = this.container.querySelector('#nexus-cta-two-btn');
+            if (ctaTwoBtn) {
+                ctaTwoBtn.addEventListener('click', () => this.handleCTATwoClick());
+            }
+        }
+
+        async init() {
+            // Legacy method - now handled by createBasicWidget and initializeEnhancements
+            console.warn('init() method is deprecated, widget is now initialized in constructor');
         }
 
         async fetchChatbotId() {
@@ -477,29 +549,11 @@
                 this.doctorDetails = details;
                 console.log('Widget doctor details loaded:', details);
                 
-                // Create personalized welcome message
-                const doctorFirstName = details.DoctorFirstName || details.StaffFirstName || 'Doctor';
-                const welcomeMessage = `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
-                
-                this.messages = [
-                    {
-                        id: 1,
-                        text: welcomeMessage,
-                        sender: 'bot',
-                        timestamp: new Date()
-                    }
-                ];
+                // Doctor details loaded but welcome message comes from IntroMessage in clinic settings
+                // No need to create custom welcome message here
             } catch (error) {
                 console.error('Failed to load doctor details for widget:', error);
-                // Set fallback welcome message from clinic settings (loaded from API)
-                this.messages = [
-                    {
-                        id: 1,
-                        text: this.config.welcomeMessage || "Hi! How can I help you today?",
-                        sender: 'bot',
-                        timestamp: new Date()
-                    }
-                ];
+                // Error loading doctor details, but welcome message still comes from clinic settings
             }
         }
 
@@ -509,7 +563,7 @@
                 // Update config with all API settings - remove all fallback defaults
                 this.config = {
                     ...this.config,
-                    welcomeMessage: settings.WelcomeMessage || "Hi! How can I help you today?",
+                    welcomeMessage: settings.IntroMessage || "Hi! How can I help you today?",
                     clinicName: settings.ClinicName || "Our Clinic",
                     logoUrl: settings.LogoUrl || '',
                     privacyNoticeText: settings.PrivacyNoticeText || "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
@@ -519,6 +573,9 @@
                     bookNowShow: settings.BookNowShow === 'True',
                     sendEmailText: settings.SendAnEmailLabel || "Send Email",
                     sendEmailShow: settings.SendAnEmailShow === 'True',
+                    ctaTwoText: settings.CTATwoLabel || "CTA Two",
+                    ctaTwoUrl: settings.CTATwoUrl || '',
+                    ctaTwoShow: settings.CTATwoShow === 'True',
                     brandColour: settings.BrandColour || '#667eea'
                 };
                 console.log('Widget clinic settings loaded:', settings);
@@ -536,6 +593,8 @@
                     bookNowShow: true,
                     sendEmailText: "Send Email",
                     sendEmailShow: true,
+                    ctaTwoText: "CTA Two",
+                    ctaTwoShow: false,
                     brandColour: '#667eea'
                 };
             }
@@ -1153,6 +1212,10 @@
                     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                 }
 
+                .nexus-action-btn.tertiary {
+                    background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+                }
+
                 /* Email Form Popup Styles */
                 .nexus-email-form-overlay {
                     position: absolute;
@@ -1565,6 +1628,15 @@
                 `;
             }
             
+            // CTA Two button
+            if (this.config.ctaTwoShow) {
+                buttonsHtml += `
+                    <button class="nexus-action-btn tertiary" id="nexus-cta-two-btn">
+                        ${this.config.ctaTwoText}
+                    </button>
+                `;
+            }
+            
             actionButtons.innerHTML = buttonsHtml;
             return actionButtons;
         }
@@ -1666,6 +1738,11 @@
                 sendEmailBtn.addEventListener('click', () => this.handleSendEmailClick());
             }
 
+            const ctaTwoBtn = this.container.querySelector('#nexus-cta-two-btn');
+            if (ctaTwoBtn) {
+                ctaTwoBtn.addEventListener('click', () => this.handleCTATwoClick());
+            }
+
             // Set up global reference for widget access
             window.nexusChatbot = this;
         }
@@ -1739,6 +1816,24 @@
             this.showEmailForm();
         }
 
+        async handleCTATwoClick() {
+            // Track the CTA Two button click
+            if (this.userChatSessionId && this.config.ctaTwoText) {
+                try {
+                    await trackButtonClick(this.userChatSessionId, this.config.ctaTwoText, this.config.chatbotId);
+                } catch (error) {
+                    console.error('Failed to track CTA Two button click:', error);
+                }
+            }
+
+            // Execute the CTA Two logic
+            if (this.config.ctaTwoUrl) {
+                window.open(this.config.ctaTwoUrl, '_blank');
+            } else {
+                alert(`${this.config.ctaTwoText || 'CTA Two'}: No URL configured for this action.`);
+            }
+        }
+
         closeChat() {
             this.isOpen = false;
             this.toggleBtn.innerHTML = '<span>💬</span><span>Need Help</span>';
@@ -1752,9 +1847,8 @@
                     await clearChatSession(this.userChatSessionId, this.config.chatbotId);
                 }
                 
-                // Create personalized welcome message
-                const doctorFirstName = this.doctorDetails?.DoctorFirstName || this.doctorDetails?.StaffFirstName || 'Doctor';
-                const welcomeMessage = `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
+                // Use IntroMessage from clinic settings instead of custom message
+                const welcomeMessage = this.config.welcomeMessage || "Hi! How can I help you today?";
                 
                 this.messages = [
                     {

@@ -24,8 +24,9 @@ Add this to any website before the closing `</body>` tag:
 - 🤖 **Advanced AI**: Integrated with Nexus AI v3 API for intelligent responses
 - 💡 **Smart Suggestions**: AI provides follow-up questions and topic suggestions
 - 👍 **Smart Reactions**: Context-aware like/dislike system that appears only for recent responses
-- � **Multi-Website Support**: Unique chatbot IDs for different websites with personalized responses
-- �🌐 **Universal**: Works on ANY website - WordPress, Shopify, React, Vue, vanilla HTML
+- 🔘 **Multi-CTA Support**: Up to 3 customizable action buttons (Book Now, Send Email, Custom CTA)
+- 🌐 **Multi-Website Support**: Unique chatbot IDs for different websites with personalized responses
+- 🌐 **Universal**: Works on ANY website - WordPress, Shopify, React, Vue, vanilla HTML
 - 📱 **Mobile Optimized**: Perfect responsive experience on all devices
 - ⚡ **Lightweight**: ~30KB minified, no dependencies
 - 🎨 **Modern UI**: Beautiful gradients, animations, and hover effects

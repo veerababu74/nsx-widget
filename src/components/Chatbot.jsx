@@ -87,25 +87,26 @@ const Chatbot = () => {
         setDoctorDetails(details);
         console.log('Doctor details loaded:', details);
         
-        // Create personalized welcome message
-        const doctorFirstName = details.DoctorFirstName || details.StaffFirstName || 'Doctor';
-        const welcomeMessage = `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
-        
-        setMessages([
-          {
-            id: 1,
-            text: welcomeMessage,
-            sender: 'bot',
-            timestamp: new Date()
-          }
-        ]);
+        // Use IntroMessage from clinic settings instead of custom doctor message
+        // The welcome message will be set when clinic settings are loaded
+        if (!clinicSettings?.IntroMessage) {
+          // Only set a temporary message if clinic settings aren't loaded yet
+          setMessages([
+            {
+              id: 1,
+              text: "Hi! How can I help you today?",
+              sender: 'bot',
+              timestamp: new Date()
+            }
+          ]);
+        }
       } catch (error) {
         console.error('Failed to load doctor details:', error);
         // Set fallback welcome message using clinic settings (will be loaded separately)
         setMessages([
           {
             id: 1,
-            text: clinicSettings?.WelcomeMessage || "Hi! How can I help you today?",
+            text: clinicSettings?.IntroMessage || "Hi! How can I help you today?",
             sender: 'bot',
             timestamp: new Date()
           }
@@ -126,6 +127,18 @@ const Chatbot = () => {
         setClinicSettings(settings);
         console.log('Clinic settings loaded:', settings);
         
+        // Set welcome message from IntroMessage
+        if (settings.IntroMessage) {
+          setMessages([
+            {
+              id: 1,
+              text: settings.IntroMessage,
+              sender: 'bot',
+              timestamp: new Date()
+            }
+          ]);
+        }
+        
         // Apply brand color to CSS custom properties
         if (settings.BrandColour) {
           document.documentElement.style.setProperty('--nexus-brand-color', settings.BrandColour);
@@ -139,7 +152,7 @@ const Chatbot = () => {
           LogoUrl: "",
           PrivacyNoticeUrl: "",
           PrivacyNoticeText: "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
-          WelcomeMessage: "Hi! How can I help you today?",
+          IntroMessage: "Hi! How can I help you today?",
           RetentionDays: "30",
           HandOffEmails: "",
           BookNowUrl: "",
@@ -289,9 +302,8 @@ const Chatbot = () => {
         await clearImprovedChatSession(userChatSessionId, chatbotId);
       }
       
-      // Create personalized welcome message
-      const doctorFirstName = doctorDetails?.DoctorFirstName || doctorDetails?.StaffFirstName || 'Doctor';
-      const welcomeMessage = `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
+      // Use IntroMessage from clinic settings instead of custom message
+      const welcomeMessage = clinicSettings?.IntroMessage || "Hi! How can I help you today?";
       
       setMessages([
         {
@@ -398,6 +410,25 @@ const Chatbot = () => {
       window.open(clinicSettings.BookNowUrl, '_blank');
     } else {
       alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.');
+    }
+  };
+
+  // CTA Two button handler
+  const handleCTATwoClick = async () => {
+    // Track the CTA Two button click
+    if (userChatSessionId && clinicSettings?.CTATwoLabel) {
+      try {
+        await trackButtonClick(userChatSessionId, clinicSettings.CTATwoLabel, chatbotId);
+      } catch (error) {
+        console.error('Failed to track CTA Two button click:', error);
+      }
+    }
+
+    // Execute the CTA Two logic
+    if (clinicSettings?.CTATwoUrl) {
+      window.open(clinicSettings.CTATwoUrl, '_blank');
+    } else {
+      alert(`${clinicSettings?.CTATwoLabel || 'CTA Two'}: No URL configured for this action.`);
     }
   };
 
@@ -639,6 +670,14 @@ const Chatbot = () => {
               onClick={handleShowEmailForm}
             >
               {clinicSettings?.SendAnEmailLabel || 'Send an email'}
+            </button>
+          )}
+          {clinicSettings?.CTATwoShow === 'True' && (
+            <button 
+              className="action-btn tertiary" 
+              onClick={handleCTATwoClick}
+            >
+              {clinicSettings?.CTATwoLabel || 'CTA Two'}
             </button>
           )}
         </div>
