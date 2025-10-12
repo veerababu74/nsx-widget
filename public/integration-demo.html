@@ -229,68 +229,41 @@ chatbot.destroy();
             autoOpen: false,
             welcomeMessage: "Welcome to the Nexus Chatbot demo! Try asking me anything."
         };
-        
-        // Log initialization status
-        console.log('🚀 Nexus Chatbot configuration set');
     </script>
     <script src="nexus-chatbot-widget.js"></script>
     
     <!-- Demo functions -->
     <script>
-        // Check if widget loaded successfully
-        setTimeout(() => {
-            if (window.NexusChatbot && window.NexusChatbot.widget) {
-                console.log('✅ Nexus Chatbot loaded successfully');
-                // Show success message
-                const successMsg = document.createElement('div');
-                successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4caf50; color: white; padding: 10px 20px; border-radius: 5px; z-index: 10001; font-family: Arial, sans-serif; font-size: 14px;';
-                successMsg.textContent = '✅ Chatbot loaded successfully!';
-                document.body.appendChild(successMsg);
-                setTimeout(() => successMsg.remove(), 3000);
-            } else {
-                console.error('❌ Nexus Chatbot failed to load');
-                // Show error message
-                const errorMsg = document.createElement('div');
-                errorMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #f44336; color: white; padding: 10px 20px; border-radius: 5px; z-index: 10001; font-family: Arial, sans-serif; font-size: 14px;';
-                errorMsg.textContent = '❌ Chatbot failed to load - check console';
-                document.body.appendChild(errorMsg);
-            }
-        }, 2000);
-        
         function openChat() {
             if (window.NexusChatbot && window.NexusChatbot.widget) {
-                window.NexusChatbot.widget.toggleChat();
-            } else {
-                alert('Chatbot not loaded. Please refresh the page.');
+                window.NexusChatbot.widget.open();
             }
         }
         
         function closeChat() {
             if (window.NexusChatbot && window.NexusChatbot.widget) {
-                window.NexusChatbot.widget.closeChat();
-            } else {
-                alert('Chatbot not loaded. Please refresh the page.');
+                window.NexusChatbot.widget.close();
             }
         }
         
         function sendTestMessage() {
             if (window.NexusChatbot && window.NexusChatbot.widget) {
-                window.NexusChatbot.widget.toggleChat();
+                window.NexusChatbot.widget.open();
                 setTimeout(() => {
-                    // This would be internal functionality - showing as demo
-                    alert('In a real implementation, this would send a test message to the chat.');
+                    window.NexusChatbot.widget.sendProgrammaticMessage("This is a test message from the demo page!");
                 }, 500);
-            } else {
-                alert('Chatbot not loaded. Please refresh the page.');
             }
         }
         
         function changeToBotLeft() {
             if (window.NexusChatbot && window.NexusChatbot.widget) {
-                // For demo purposes - in reality this would require destroying and recreating
-                alert('This demo shows how you could dynamically change chatbot position by destroying and recreating the widget with new config.');
-            } else {
-                alert('Chatbot not loaded. Please refresh the page.');
+                // Destroy current widget
+                window.NexusChatbot.widget.destroy();
+                // Create new one in bottom-left
+                window.NexusChatbot.start({
+                    position: 'bottom-left',
+                    welcomeMessage: "I'm now on the left side! How can I help?"
+                });
             }
         }
     </script>
