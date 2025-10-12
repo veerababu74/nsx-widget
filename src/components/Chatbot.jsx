@@ -79,7 +79,7 @@ const Chatbot = () => {
 
   // Load doctor details and set initial welcome message (depends on chatbotId and clinicSettings)
   useEffect(() => {
-    if (!chatbotId || !clinicSettings) return; // Wait for both chatbot ID and clinic settings to be available
+    if (!chatbotId) return; // Wait for chatbot ID to be available
     
     const loadDoctorDetails = async () => {
       try {
@@ -87,33 +87,55 @@ const Chatbot = () => {
         setDoctorDetails(details);
         console.log('Doctor details loaded:', details);
         
-        // Use IntroMessage from clinic settings as the welcome message
-        const welcomeMessage = clinicSettings?.IntroMessage || `Hi, I'm Dr. ${details.DoctorFirstName || details.StaffFirstName || 'Doctor'} 😊\nHow can I assist you today?`;
-        
-        setMessages([
-          {
-            id: 1,
-            text: welcomeMessage,
-            sender: 'bot',
-            timestamp: new Date()
-          }
-        ]);
+        // Update welcome message only if we don't have IntroMessage from clinic settings
+        if (!clinicSettings?.IntroMessage) {
+          const doctorFirstName = details.DoctorFirstName || details.StaffFirstName || 'Doctor';
+          const welcomeMessage = `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
+          
+          setMessages([
+            {
+              id: 1,
+              text: welcomeMessage,
+              sender: 'bot',
+              timestamp: new Date()
+            }
+          ]);
+        }
       } catch (error) {
         console.error('Failed to load doctor details:', error);
-        // Set fallback welcome message using clinic settings IntroMessage
-        setMessages([
-          {
-            id: 1,
-            text: clinicSettings?.IntroMessage || "Hi! How can I help you today?",
-            sender: 'bot',
-            timestamp: new Date()
-          }
-        ]);
+        // Keep the existing welcome message if doctor details fail
       }
     };
     
     loadDoctorDetails();
-  }, [chatbotId, clinicSettings]);
+  }, [chatbotId]);
+
+  // Set initial welcome message immediately
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([
+        {
+          id: 1,
+          text: clinicSettings?.IntroMessage || "Hi! How can I help you today?",
+          sender: 'bot',
+          timestamp: new Date()
+        }
+      ]);
+    }
+  }, []);
+
+  // Update welcome message when clinic settings load
+  useEffect(() => {
+    if (clinicSettings?.IntroMessage && messages.length > 0 && messages[0].sender === 'bot') {
+      setMessages(prevMessages => [
+        {
+          ...prevMessages[0],
+          text: clinicSettings.IntroMessage
+        },
+        ...prevMessages.slice(1)
+      ]);
+    }
+  }, [clinicSettings?.IntroMessage]);
 
   // Load clinic settings on component mount (depends on chatbotId)
   useEffect(() => {
