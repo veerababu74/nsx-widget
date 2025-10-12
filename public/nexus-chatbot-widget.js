@@ -14,21 +14,18 @@
         position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left
         theme: 'default', // default, dark, custom
         autoOpen: false,
-        // Default values for immediate UI rendering
-        welcomeMessage: "Hi! How can I help you today?",
-        clinicName: "Our Clinic",
-        logoUrl: '',
-        privacyNoticeText: "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
-        privacyNoticeUrl: '',
-        bookNowText: "Book Now",
-        bookNowUrl: '',
-        bookNowShow: true,
-        sendEmailText: "Send Email", 
-        sendEmailShow: true,
-        ctaTwoText: "More Info",
-        ctaTwoUrl: '',
-        ctaTwoShow: false,
-        brandColour: '#667eea',
+        // All the following will be fetched from Settings API
+        welcomeMessage: null, // Fetched from Settings API
+        clinicName: null, // Fetched from Settings API
+        logoUrl: null, // Fetched from Settings API
+        privacyNoticeText: null, // Fetched from Settings API
+        privacyNoticeUrl: null, // Fetched from Settings API
+        bookNowText: null, // Fetched from Settings API
+        bookNowUrl: null, // Fetched from Settings API
+        bookNowShow: null, // Fetched from Settings API
+        sendEmailText: null, // Fetched from Settings API
+        sendEmailShow: null, // Fetched from Settings API
+        brandColour: null, // Fetched from Settings API
         chatbotId: null // Will be fetched dynamically based on website URL
     };
 
@@ -420,14 +417,7 @@
     class NexusChatbotWidget {
         constructor(config = {}) {
             this.config = { ...CHATBOT_CONFIG, ...config };
-            this.messages = [
-                {
-                    id: 1,
-                    text: "Hi! How can I help you today?",
-                    sender: 'bot',
-                    timestamp: new Date()
-                }
-            ]; // Start with a simple welcome message
+            this.messages = []; // Start with empty messages, will be set after loading doctor details
             this.isLoading = false;
             this.isOpen = this.config.autoOpen;
             this.container = null;
@@ -438,147 +428,25 @@
             this.showStarterQuestions = true;
             this.doctorDetails = null;
             
-            // Initialize UI immediately with fallback values
-            this.createStyles();
-            this.createWidget();
-            this.attachEventListeners();
-            
-            // Load data asynchronously in the background
-            this.loadDataAsync();
-        }
-
-        async loadDataAsync() {
-            try {
-                // Start all async operations
-                const promises = [
-                    this.fetchChatbotId(),
-                    this.fetchIP(),
-                    this.loadClinicSettings(),
-                    this.loadStarterQuestions()
-                ];
-
-                // Wait for chatbot ID first as it's needed for other calls
-                await promises[0];
-                
-                // Load doctor details after we have chatbot ID
-                const doctorPromise = this.loadDoctorDetails();
-                
-                // Wait for all remaining operations
-                await Promise.allSettled([...promises.slice(1), doctorPromise]);
-                
-                // Update the UI after all data is loaded
-                this.updateUIAfterDataLoad();
-                
-            } catch (error) {
-                console.error('Error during background data loading:', error);
-            }
-        }
-
-        updateUIAfterDataLoad() {
-            // Update the header with clinic info
-            const headerElement = this.container.querySelector('.nexus-chatbot-header');
-            if (headerElement) {
-                const logoHtml = this.config.logoUrl 
-                    ? `<img src="${this.config.logoUrl}" alt="Clinic Logo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`
-                    : '🤖';
-                
-                headerElement.innerHTML = `
-                    <div class="nexus-header-info">
-                        <div class="nexus-bot-avatar">${logoHtml}</div>
-                        <div>
-                            <h3>${this.config.clinicName}</h3>
-                            <span class="nexus-status">Educational assistant only</span>
-                        </div>
-                    </div>
-                    <div class="nexus-header-actions">
-                        <button class="nexus-close-btn" title="Close chat">✕</button>
-                    </div>
-                `;
-                
-                // Re-attach close button event listener
-                const closeBtn = headerElement.querySelector('.nexus-close-btn');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', () => this.closeChat());
-                }
-            }
-
-            // Update welcome message if we have better data
-            if (this.config.welcomeMessage && this.messages[0]) {
-                this.messages[0].text = this.config.welcomeMessage;
-            }
-
-            // Update action buttons
-            const actionButtonsContainer = this.container.querySelector('.nexus-action-buttons');
-            if (actionButtonsContainer) {
-                let buttonsHtml = '';
-                
-                // Book Now button
-                if (this.config.bookNowShow) {
-                    buttonsHtml += `
-                        <button class="nexus-action-btn" id="nexus-book-now-btn">
-                            ${this.config.bookNowText}
-                        </button>
-                    `;
-                }
-                
-                // Send Email button
-                if (this.config.sendEmailShow) {
-                    buttonsHtml += `
-                        <button class="nexus-action-btn secondary" id="nexus-send-email-btn">
-                            ${this.config.sendEmailText}
-                        </button>
-                    `;
-                }
-                
-                // CTA Two button
-                if (this.config.ctaTwoShow) {
-                    buttonsHtml += `
-                        <button class="nexus-action-btn tertiary" id="nexus-cta-two-btn">
-                            ${this.config.ctaTwoText}
-                        </button>
-                    `;
-                }
-                
-                actionButtonsContainer.innerHTML = buttonsHtml;
-                
-                // Re-attach button event listeners
-                const bookNowBtn = actionButtonsContainer.querySelector('#nexus-book-now-btn');
-                if (bookNowBtn) {
-                    bookNowBtn.addEventListener('click', () => this.handleBookNowClick());
-                }
-
-                const sendEmailBtn = actionButtonsContainer.querySelector('#nexus-send-email-btn');
-                if (sendEmailBtn) {
-                    sendEmailBtn.addEventListener('click', () => this.handleSendEmailClick());
-                }
-
-                const ctaTwoBtn = actionButtonsContainer.querySelector('#nexus-cta-two-btn');
-                if (ctaTwoBtn) {
-                    ctaTwoBtn.addEventListener('click', () => this.handleCTATwoClick());
-                }
-            }
-
-            // Re-render messages to show updated content and starter questions
-            this.renderMessages();
-            
-            // Apply brand color
-            if (this.config.brandColour) {
-                document.documentElement.style.setProperty('--nexus-brand-color', this.config.brandColour);
-                // Update existing styles
-                this.updateBrandColorInStyles();
-            }
-        }
-
-        updateBrandColorInStyles() {
-            // Find and update the existing style element
-            const existingStyle = document.querySelector('style[data-nexus-widget]');
-            if (existingStyle) {
-                existingStyle.textContent = this.getWidgetStyles();
-            }
+            // Initialize asynchronously
+            this.init().catch(error => {
+                console.error('Failed to initialize chatbot widget:', error);
+                // Fallback to default initialization
+                this.createStyles();
+                this.createWidget();
+                this.attachEventListeners();
+            });
         }
 
         async init() {
-            // This method is no longer needed but kept for backward compatibility
+            await this.fetchChatbotId();
+            await this.fetchIP(); // Fetch user's IP address
+            await this.loadDoctorDetails();
+            await this.loadClinicSettings();
+            await this.loadStarterQuestions();
+            this.createStyles();
+            this.createWidget();
+            this.attachEventListeners();
         }
 
         async fetchChatbotId() {
@@ -609,24 +477,38 @@
                 this.doctorDetails = details;
                 console.log('Widget doctor details loaded:', details);
                 
-                // Update welcome message with doctor info if IntroMessage is not available
-                if (!this.config.welcomeMessage) {
-                    const doctorFirstName = details.DoctorFirstName || details.StaffFirstName || 'Doctor';
-                    this.config.welcomeMessage = `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
-                }
+                // Use IntroMessage from clinic settings as the welcome message
+                const welcomeMessage = this.config.welcomeMessage || `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
+                
+                this.messages = [
+                    {
+                        id: 1,
+                        text: welcomeMessage,
+                        sender: 'bot',
+                        timestamp: new Date()
+                    }
+                ];
             } catch (error) {
                 console.error('Failed to load doctor details for widget:', error);
-                // Keep the fallback welcome message
+                // Set fallback welcome message from clinic settings (loaded from API)
+                this.messages = [
+                    {
+                        id: 1,
+                        text: this.config.welcomeMessage || "Hi! How can I help you today?",
+                        sender: 'bot',
+                        timestamp: new Date()
+                    }
+                ];
             }
         }
 
         async loadClinicSettings() {
             try {
                 const settings = await getClinicSettings(this.config.chatbotId);
-                // Update config with all API settings
+                // Update config with all API settings - remove all fallback defaults
                 this.config = {
                     ...this.config,
-                    welcomeMessage: settings.IntroMessage || this.config.welcomeMessage || "Hi! How can I help you today?",
+                    welcomeMessage: settings.IntroMessage || "Hi! How can I help you today?",
                     clinicName: settings.ClinicName || "Our Clinic",
                     logoUrl: settings.LogoUrl || '',
                     privacyNoticeText: settings.PrivacyNoticeText || "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
@@ -644,7 +526,22 @@
                 console.log('Widget clinic settings loaded:', settings);
             } catch (error) {
                 console.error('Failed to load clinic settings for widget:', error);
-                // Keep minimal fallback values that were set during constructor
+                // Set minimal fallback values if API fails
+                this.config = {
+                    ...this.config,
+                    welcomeMessage: "Hi! How can I help you today?",
+                    clinicName: "Our Clinic",
+                    logoUrl: '',
+                    privacyNoticeText: "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
+                    privacyNoticeUrl: '',
+                    bookNowText: "Book Now",
+                    bookNowShow: true,
+                    sendEmailText: "Send Email",
+                    sendEmailShow: true,
+                    ctaTwoText: "More Info",
+                    ctaTwoShow: false,
+                    brandColour: '#667eea'
+                };
             }
         }
 
@@ -655,7 +552,7 @@
                 console.log('Widget starter questions loaded:', questions);
             } catch (error) {
                 console.error('Failed to load starter questions for widget:', error);
-                // Keep starter questions hidden if API fails
+                // Don't set fallback questions - hide starter questions if API fails
                 this.starterQuestions = null;
                 this.showStarterQuestions = false;
             }
@@ -663,7 +560,6 @@
 
         createStyles() {
             const style = document.createElement('style');
-            style.setAttribute('data-nexus-widget', 'true');
             style.textContent = this.getWidgetStyles();
             document.head.appendChild(style);
         }
