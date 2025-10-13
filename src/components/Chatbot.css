@@ -807,16 +807,17 @@
 
 /* Action Buttons Styles */
 .action-buttons {
-  padding: 16px 20px;
+  padding: 16px 20px 8px 20px;
   border-top: 1px solid #eee;
   display: flex;
+  flex-direction: column;
   gap: 12px;
   background: #f8f9fa;
 }
 
 .action-btn {
   flex: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #00627f;
   color: white;
   border: none;
   padding: 12px 16px;
@@ -834,11 +835,24 @@
 }
 
 .action-btn.secondary {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  background: #099a9d;
 }
 
 .action-btn.tertiary {
-  background: linear-gradient(135deg, #fd7e14 0%, #ff6b6b 100%);
+  background: #fe6424;
+}
+
+.action-buttons-container {
+  display: flex;
+  gap: 12px;
+}
+
+.action-buttons-disclaimer {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+  margin-top: 8px;
 }
 
 /* Email Form Modal Styles */

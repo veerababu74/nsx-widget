@@ -293,7 +293,7 @@
     // Session tracking functions
     async function fetchUserIP() {
         try {
-            // Try multiple IP services for reliability
+            // Try multiple IP services for reliability with timeout
             const ipServices = [
                 'https://api.ipify.org?format=json',
                 'https://ipapi.co/json/',
@@ -302,7 +302,16 @@
 
             for (const service of ipServices) {
                 try {
-                    const response = await fetch(service);
+                    // Add timeout to prevent long delays
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+                    
+                    const response = await fetch(service, { 
+                        signal: controller.signal,
+                        timeout: 3000 
+                    });
+                    clearTimeout(timeoutId);
+                    
                     if (!response.ok) continue;
                     
                     const data = await response.json();
@@ -314,7 +323,11 @@
                         return data.origin; // httpbin.org format
                     }
                 } catch (error) {
-                    console.warn(`Failed to fetch IP from ${service}:`, error);
+                    if (error.name === 'AbortError') {
+                        console.warn(`Timeout fetching IP from ${service}`);
+                    } else {
+                        console.warn(`Failed to fetch IP from ${service}:`, error.message);
+                    }
                     continue;
                 }
             }
@@ -440,7 +453,10 @@
 
         async init() {
             await this.fetchChatbotId();
-            await this.fetchIP(); // Fetch user's IP address
+            
+            // Fetch IP in background - don't block widget initialization
+            this.fetchIP();
+            
             await this.loadDoctorDetails();
             await this.loadClinicSettings();
             await this.loadStarterQuestions();
@@ -462,12 +478,16 @@
         }
 
         async fetchIP() {
+            // Set default IP immediately
+            this.userIP = '127.0.0.1';
+            
             try {
+                // Try to fetch real IP in background
                 const ip = await fetchUserIP();
                 this.userIP = ip;
                 console.log('Widget user IP fetched:', ip);
             } catch (error) {
-                console.error('Failed to fetch user IP for widget:', error);
+                console.warn('Failed to fetch user IP for widget, using fallback:', error);
             }
         }
 
@@ -514,7 +534,7 @@
                     privacyNoticeText: settings.PrivacyNoticeText || "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
                     privacyNoticeUrl: settings.PrivacyNoticeUrl || '',
                     bookNowUrl: settings.BookNowUrl || '',
-                    bookNowText: settings.BookNowLabel || "Book Now",
+                    bookNowText: settings.BookNowLabel || "Book Demo",
                     bookNowShow: settings.BookNowShow === 'True',
                     sendEmailText: settings.SendAnEmailLabel || "Send Email",
                     sendEmailShow: settings.SendAnEmailShow === 'True',
@@ -534,7 +554,7 @@
                     logoUrl: '',
                     privacyNoticeText: "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
                     privacyNoticeUrl: '',
-                    bookNowText: "Book Now",
+                    bookNowText: "Book Demo",
                     bookNowShow: true,
                     sendEmailText: "Send Email",
                     sendEmailShow: true,
@@ -1127,16 +1147,17 @@
 
                 /* Action Buttons Styles */
                 .nexus-action-buttons {
-                    padding: 16px 20px;
+                    padding: 16px 20px 8px 20px;
                     border-top: 1px solid #eee;
                     display: flex;
+                    flex-direction: column;
                     gap: 12px;
                     background: #f8f9fa;
                 }
 
                 .nexus-action-btn {
                     flex: 1;
-                    background: ${gradientColor};
+                    background: #00627f;
                     color: white;
                     border: none;
                     padding: 12px 16px;
@@ -1154,11 +1175,24 @@
                 }
 
                 .nexus-action-btn.secondary {
-                    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                    background: #099a9d;
                 }
 
                 .nexus-action-btn.tertiary {
-                    background: linear-gradient(135deg, #fd7e14 0%, #ff6b6b 100%);
+                    background: #fe6424;
+                }
+
+                .nexus-action-buttons-container {
+                    display: flex;
+                    gap: 12px;
+                }
+
+                .nexus-action-buttons-disclaimer {
+                    text-align: center;
+                    font-size: 12px;
+                    color: #666;
+                    font-style: italic;
+                    margin-top: 8px;
                 }
 
                 /* Email Form Popup Styles */
@@ -1527,7 +1561,6 @@
                     <div class="nexus-bot-avatar">${logoHtml}</div>
                     <div>
                         <h3>${this.config.clinicName}</h3>
-                        <span class="nexus-status">Educational assistant only</span>
                     </div>
                 </div>
                 <div class="nexus-header-actions">
@@ -1553,7 +1586,7 @@
             const actionButtons = document.createElement('div');
             actionButtons.className = 'nexus-action-buttons';
             
-            let buttonsHtml = '';
+            let buttonsHtml = '<div class="nexus-action-buttons-container">';
             
             // Book Now button
             if (this.config.bookNowShow) {
@@ -1581,6 +1614,9 @@
                     </button>
                 `;
             }
+            
+            buttonsHtml += '</div>';
+            buttonsHtml += '<div class="nexus-action-buttons-disclaimer">Educational assistant only. Not medical advice.</div>';
             
             actionButtons.innerHTML = buttonsHtml;
             return actionButtons;

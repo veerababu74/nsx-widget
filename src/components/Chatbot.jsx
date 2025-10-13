@@ -142,7 +142,7 @@ const Chatbot = () => {
           RetentionDays: "30",
           HandOffEmails: "",
           BookNowUrl: "",
-          BookNowLabel: "Book Now",
+          BookNowLabel: "Book Demo",
           BookNowShow: "True",
           SendAnEmailLabel: "Send Email",
           SendAnEmailShow: "True",
@@ -384,22 +384,22 @@ const Chatbot = () => {
     setShowEmailForm(false);
   };
 
-  // Book Now button handler
+  // Book Demo button handler
   const handleBookNowClick = async () => {
-    // Track the Book Now button click
+    // Track the Book Demo button click
     if (userChatSessionId && clinicSettings?.BookNowLabel) {
       try {
         await trackButtonClick(userChatSessionId, clinicSettings.BookNowLabel, chatbotId);
       } catch (error) {
-        console.error('Failed to track Book Now button click:', error);
+        console.error('Failed to track Book Demo button click:', error);
       }
     }
 
-    // Execute the original Book Now logic
+    // Execute the original Book Demo logic
     if (clinicSettings?.BookNowUrl) {
       window.open(clinicSettings.BookNowUrl, '_blank');
     } else {
-      alert('Book Now: Please call us at your clinic number or visit our website to book an appointment.');
+      alert('Book Demo: Please call us at your clinic number or visit our website to book an appointment.');
     }
   };
 
@@ -488,7 +488,6 @@ const Chatbot = () => {
             </div>
             <div>
               <h3>{clinicSettings?.ClinicName || 'Clinic Name'}</h3>
-              <span className="status">Educational assistant not medical advice</span>
             </div>
           </div>
           <div className="header-actions">
@@ -646,30 +645,35 @@ const Chatbot = () => {
 
         {/* Action Buttons */}
         <div className="action-buttons">
-          {clinicSettings?.BookNowShow === 'True' && (
-            <button 
-              className="action-btn" 
-              onClick={handleBookNowClick}
-            >
-              {clinicSettings?.BookNowLabel || 'book now'}
-            </button>
-          )}
-          {clinicSettings?.SendAnEmailShow === 'True' && (
-            <button 
-              className="action-btn secondary" 
-              onClick={handleShowEmailForm}
-            >
-              {clinicSettings?.SendAnEmailLabel || 'Send an email'}
-            </button>
-          )}
-          {clinicSettings?.CTATwoShow === 'True' && (
-            <button 
-              className="action-btn tertiary" 
-              onClick={handleCTATwoClick}
-            >
-              {clinicSettings?.CTATwoLabel || 'More Info'}
-            </button>
-          )}
+          <div className="action-buttons-container">
+            {clinicSettings?.BookNowShow === 'True' && (
+              <button 
+                className="action-btn" 
+                onClick={handleBookNowClick}
+              >
+                {clinicSettings?.BookNowLabel || 'Book Demo'}
+              </button>
+            )}
+            {clinicSettings?.SendAnEmailShow === 'True' && (
+              <button 
+                className="action-btn secondary" 
+                onClick={handleShowEmailForm}
+              >
+                {clinicSettings?.SendAnEmailLabel || 'Send an email'}
+              </button>
+            )}
+            {clinicSettings?.CTATwoShow === 'True' && (
+              <button 
+                className="action-btn tertiary" 
+                onClick={handleCTATwoClick}
+              >
+                {clinicSettings?.CTATwoLabel || 'More Info'}
+              </button>
+            )}
+          </div>
+          <div className="action-buttons-disclaimer">
+            Educational assistant only. Not medical advice.
+          </div>
         </div>
 
         {/* Email Form Modal */}
