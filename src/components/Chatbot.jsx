@@ -125,9 +125,14 @@ const Chatbot = () => {
         setClinicSettings(settings);
         console.log('Clinic settings loaded:', settings);
         
-        // Apply brand color to CSS custom properties
+        // Apply brand color and text color to CSS custom properties
         if (settings.BrandColour) {
           document.documentElement.style.setProperty('--nexus-brand-color', settings.BrandColour);
+          console.log('Applied brand color:', settings.BrandColour);
+        }
+        if (settings.TextColour) {
+          document.documentElement.style.setProperty('--nexus-text-color', settings.TextColour);
+          console.log('Applied text color:', settings.TextColour);
         }
       } catch (error) {
         console.error('Failed to load clinic settings:', error);
@@ -135,6 +140,7 @@ const Chatbot = () => {
         setClinicSettings({
           ClinicName: "Our Clinic",
           BrandColour: "#667eea",
+          TextColour: "#ffffff",
           LogoUrl: "",
           PrivacyNoticeUrl: "",
           PrivacyNoticeText: "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
@@ -151,8 +157,10 @@ const Chatbot = () => {
           CTATwoShow: "False"
         });
         
-        // Apply fallback brand color
+        // Apply fallback colors
         document.documentElement.style.setProperty('--nexus-brand-color', '#667eea');
+        document.documentElement.style.setProperty('--nexus-text-color', '#ffffff');
+        console.log('Applied fallback colors - Brand: #667eea, Text: #ffffff');
       }
     };
     

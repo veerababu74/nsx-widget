@@ -26,6 +26,7 @@
         sendEmailText: null, // Fetched from Settings API
         sendEmailShow: null, // Fetched from Settings API
         brandColour: null, // Fetched from Settings API
+        textColour: null, // Fetched from Settings API
         chatbotId: null // Will be fetched dynamically based on website URL
     };
 
@@ -541,7 +542,8 @@
                     ctaTwoUrl: settings.CTATwoUrl || '',
                     ctaTwoText: settings.CTATwoLabel || "More Info",
                     ctaTwoShow: settings.CTATwoShow === 'True',
-                    brandColour: settings.BrandColour || '#667eea'
+                    brandColour: settings.BrandColour || '#667eea',
+                    textColour: settings.TextColour || '#ffffff'
                 };
                 console.log('Widget clinic settings loaded:', settings);
             } catch (error) {
@@ -560,7 +562,8 @@
                     sendEmailShow: true,
                     ctaTwoText: "More Info",
                     ctaTwoShow: false,
-                    brandColour: '#667eea'
+                    brandColour: '#667eea',
+                    textColour: '#ffffff'
                 };
             }
         }
@@ -579,13 +582,21 @@
         }
 
         createStyles() {
+            // Remove any existing widget styles
+            const existingStyle = document.querySelector('style[data-nexus-widget]');
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+            
             const style = document.createElement('style');
+            style.setAttribute('data-nexus-widget', 'true');
             style.textContent = this.getWidgetStyles();
             document.head.appendChild(style);
         }
 
         getWidgetStyles() {
             const brandColor = this.config.brandColour || '#667eea';
+            const textColor = this.config.textColour || '#ffffff';
             const gradientColor = `linear-gradient(135deg, ${brandColor}, #764ba2 100%)`;
             
             return `
@@ -657,7 +668,7 @@
                 
                 .nexus-chatbot-header {
                     background: ${gradientColor};
-                    color: white;
+                    color: ${textColor};
                     padding: 16px 20px;
                     display: flex;
                     justify-content: space-between;
@@ -685,6 +696,7 @@
                     margin: 0;
                     font-size: 16px;
                     font-weight: 600;
+                    color: ${textColor};
                 }
                 
                 .nexus-status {
@@ -872,7 +884,7 @@
                     border-radius: 50%;
                     border: none;
                     background: ${gradientColor};
-                    color: white;
+                    color: ${textColor};
                     cursor: pointer;
                     transition: all 0.2s;
                     display: flex;

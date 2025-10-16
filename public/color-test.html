@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Chatbot - Color Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .color-demo {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            border-radius: 50%;
+            vertical-align: middle;
+        }
+        .test-button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+        .instructions {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <h2>🎨 Nexus Chatbot Color Test</h2>
+        <p>This page tests the color customization functionality. Click the buttons below to simulate different API responses and see how the colors change in the chatbot.</p>
+        <p><strong>How to test:</strong></p>
+        <ol>
+            <li>Open the chatbot by clicking the chat button</li>
+            <li>Click any color test button below</li>
+            <li>The chatbot colors should update immediately</li>
+            <li>Check header background, header text, and send button colors</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 1: Blue Theme</h3>
+        <div class="color-demo" style="background: #2196F3;"></div>
+        <span>Brand: #2196F3</span>
+        <div class="color-demo" style="background: #ffffff;"></div>
+        <span>Text: #ffffff</span>
+        <br>
+        <button class="test-button" onclick="applyColors('#2196F3', '#ffffff')" style="background: #2196F3;">Apply Blue Theme</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 2: Green Theme</h3>
+        <div class="color-demo" style="background: #4CAF50;"></div>
+        <span>Brand: #4CAF50</span>
+        <div class="color-demo" style="background: #000000;"></div>
+        <span>Text: #000000</span>
+        <br>
+        <button class="test-button" onclick="applyColors('#4CAF50', '#000000')" style="background: #4CAF50;">Apply Green Theme</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 3: Purple Theme</h3>
+        <div class="color-demo" style="background: #9C27B0;"></div>
+        <span>Brand: #9C27B0</span>
+        <div class="color-demo" style="background: #ffffff;"></div>
+        <span>Text: #ffffff</span>
+        <br>
+        <button class="test-button" onclick="applyColors('#9C27B0', '#ffffff')" style="background: #9C27B0;">Apply Purple Theme</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 4: Orange Theme with Dark Text</h3>
+        <div class="color-demo" style="background: #FF9800;"></div>
+        <span>Brand: #FF9800</span>
+        <div class="color-demo" style="background: #333333;"></div>
+        <span>Text: #333333</span>
+        <br>
+        <button class="test-button" onclick="applyColors('#FF9800', '#333333')" style="background: #FF9800; color: #333333;">Apply Orange Theme</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 5: Reset to Default</h3>
+        <div class="color-demo" style="background: #667eea;"></div>
+        <span>Brand: #667eea</span>
+        <div class="color-demo" style="background: #ffffff;"></div>
+        <span>Text: #ffffff</span>
+        <br>
+        <button class="test-button" onclick="applyColors('#667eea', '#ffffff')" style="background: #667eea;">Reset to Default</button>
+    </div>
+
+    <script>
+        function applyColors(brandColor, textColor) {
+            // Apply colors to CSS custom properties
+            document.documentElement.style.setProperty('--nexus-brand-color', brandColor);
+            document.documentElement.style.setProperty('--nexus-text-color', textColor);
+            
+            // Update gradient
+            const gradient = `linear-gradient(135deg, ${brandColor}, #764ba2)`;
+            document.documentElement.style.setProperty('--nexus-brand-gradient', gradient);
+            
+            console.log(`Applied colors - Brand: ${brandColor}, Text: ${textColor}`);
+            
+            // Show success message
+            const existingMsg = document.querySelector('.success-msg');
+            if (existingMsg) existingMsg.remove();
+            
+            const msg = document.createElement('div');
+            msg.className = 'success-msg';
+            msg.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${brandColor};
+                color: ${textColor};
+                padding: 10px 20px;
+                border-radius: 5px;
+                z-index: 10001;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            `;
+            msg.textContent = `Colors applied! Brand: ${brandColor}, Text: ${textColor}`;
+            document.body.appendChild(msg);
+            
+            setTimeout(() => msg.remove(), 3000);
+        }
+    </script>
+
+    <!-- Nexus Chatbot Widget -->
+    <script src="nexus-chatbot-widget.js"></script>
+</body>
+</html>
