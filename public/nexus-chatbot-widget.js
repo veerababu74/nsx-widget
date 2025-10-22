@@ -612,7 +612,7 @@
                     min-width: 120px;
                     padding: 0 16px;
                     border-radius: 8px;
-                    background: ${gradientColor};
+                    background: ${brandColor};
                     border: none;
                     color: white;
                     font-size: 14px;
@@ -667,7 +667,7 @@
                 }
                 
                 .nexus-chatbot-header {
-                    background: ${gradientColor};
+                    background: ${brandColor};
                     color: ${textColor};
                     padding: 16px 20px;
                     display: flex;
@@ -780,7 +780,7 @@
                 }
                 
                 .nexus-message.user .nexus-message-bubble {
-                    background: ${gradientColor};
+                    background: ${brandColor};
                     color: white;
                     border-bottom-right-radius: 6px;
                 }
@@ -883,7 +883,7 @@
                     height: 44px;
                     border-radius: 50%;
                     border: none;
-                    background: ${gradientColor};
+                    background: ${brandColor};
                     color: ${textColor};
                     cursor: pointer;
                     transition: all 0.2s;
@@ -895,7 +895,7 @@
                 
                 .nexus-send-btn:hover:not(:disabled) {
                     transform: scale(1.05);
-                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    box-shadow: 0 4px 15px ${brandColor}66;
                 }
                 
                 .nexus-send-btn:disabled {
@@ -1281,7 +1281,7 @@
                 .nexus-email-form-group textarea:focus {
                     outline: none;
                     border-color: ${brandColor};
-                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                    box-shadow: 0 0 0 3px ${brandColor}1a;
                 }
 
                 .nexus-email-form-group textarea {
@@ -1308,13 +1308,13 @@
                 }
 
                 .nexus-email-form-btn.primary {
-                    background: ${gradientColor};
+                    background: ${brandColor};
                     color: white;
                 }
 
                 .nexus-email-form-btn.primary:hover:not(:disabled) {
                     transform: translateY(-1px);
-                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    box-shadow: 0 4px 15px ${brandColor}66;
                 }
 
                 .nexus-email-form-btn.primary:disabled {
