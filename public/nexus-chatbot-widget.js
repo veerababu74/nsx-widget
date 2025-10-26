@@ -458,8 +458,8 @@
             // Fetch IP in background - don't block widget initialization
             this.fetchIP();
             
+            await this.loadClinicSettings(); // Load settings first to get intro message
             await this.loadDoctorDetails();
-            await this.loadClinicSettings();
             await this.loadStarterQuestions();
             this.createStyles();
             this.createWidget();
@@ -497,31 +497,8 @@
                 const details = await getDoctorDetails(this.config.chatbotId);
                 this.doctorDetails = details;
                 console.log('Widget doctor details loaded:', details);
-                
-                // Use IntroMessage from clinic settings as the welcome message
-                if (this.config.welcomeMessage) {
-                    this.messages = [
-                        {
-                            id: 1,
-                            text: this.config.welcomeMessage,
-                            sender: 'bot',
-                            timestamp: new Date()
-                        }
-                    ];
-                }
             } catch (error) {
                 console.error('Failed to load doctor details for widget:', error);
-                // Only set message if we have a dynamic welcome message from clinic settings
-                if (this.config.welcomeMessage) {
-                    this.messages = [
-                        {
-                            id: 1,
-                            text: this.config.welcomeMessage,
-                            sender: 'bot',
-                            timestamp: new Date()
-                        }
-                    ];
-                }
             }
         }
 
@@ -548,6 +525,19 @@
                     textColour: settings.TextColour || '#ffffff'
                 };
                 console.log('Widget clinic settings loaded:', settings);
+                
+                // Set intro message immediately when clinic settings are loaded (only if no messages exist)
+                if (settings.IntroMessage && this.messages.length === 0) {
+                    this.messages = [
+                        {
+                            id: 1,
+                            text: settings.IntroMessage,
+                            sender: 'bot',
+                            timestamp: new Date()
+                        }
+                    ];
+                    console.log('Widget intro message set from clinic settings:', settings.IntroMessage);
+                }
             } catch (error) {
                 console.error('Failed to load clinic settings for widget:', error);
                 // Set minimal fallback values if API fails

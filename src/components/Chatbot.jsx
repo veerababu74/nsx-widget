@@ -77,45 +77,22 @@ const Chatbot = () => {
     trackSession();
   }, [isOpen, userIP, chatbotId, sessionTracked]);
 
-  // Load doctor details and set initial welcome message (depends on chatbotId and clinicSettings)
+  // Load doctor details (depends on chatbotId)
   useEffect(() => {
-    if (!chatbotId || !clinicSettings) return; // Wait for both chatbot ID and clinic settings to be available
+    if (!chatbotId) return; // Wait for chatbot ID to be available
     
     const loadDoctorDetails = async () => {
       try {
         const details = await getDoctorDetails(chatbotId);
         setDoctorDetails(details);
         console.log('Doctor details loaded:', details);
-        
-        // Use IntroMessage from clinic settings as the welcome message
-        if (clinicSettings?.IntroMessage) {
-          setMessages([
-            {
-              id: 1,
-              text: clinicSettings.IntroMessage,
-              sender: 'bot',
-              timestamp: new Date()
-            }
-          ]);
-        }
       } catch (error) {
         console.error('Failed to load doctor details:', error);
-        // Only set message if we have a dynamic welcome message from clinic settings
-        if (clinicSettings?.IntroMessage) {
-          setMessages([
-            {
-              id: 1,
-              text: clinicSettings.IntroMessage,
-              sender: 'bot',
-              timestamp: new Date()
-            }
-          ]);
-        }
       }
     };
     
     loadDoctorDetails();
-  }, [chatbotId, clinicSettings]);
+  }, [chatbotId]);
 
   // Load clinic settings on component mount (depends on chatbotId)
   useEffect(() => {
@@ -135,6 +112,19 @@ const Chatbot = () => {
         if (settings.TextColour) {
           document.documentElement.style.setProperty('--nexus-text-color', settings.TextColour);
           console.log('Applied text color:', settings.TextColour);
+        }
+
+        // Set intro message immediately when clinic settings are loaded (only if no messages exist)
+        if (settings.IntroMessage && messages.length === 0) {
+          setMessages([
+            {
+              id: 1,
+              text: settings.IntroMessage,
+              sender: 'bot',
+              timestamp: new Date()
+            }
+          ]);
+          console.log('Intro message set from clinic settings:', settings.IntroMessage);
         }
       } catch (error) {
         console.error('Failed to load clinic settings:', error);
@@ -167,7 +157,7 @@ const Chatbot = () => {
     };
     
     loadSettings();
-  }, [chatbotId]);
+  }, [chatbotId, messages.length]);
 
   // Load starter questions on component mount (depends on chatbotId)
   useEffect(() => {
