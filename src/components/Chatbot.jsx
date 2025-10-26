@@ -325,16 +325,21 @@ const Chatbot = () => {
 
   const handleReaction = async (messageId, sessionId, reaction) => {
     try {
-      // Find the current reaction for this message
-      const currentMessage = messages.find(msg => msg.id === messageId);
-      const currentReaction = currentMessage?.userReaction;
+      // Find the current reaction for this message using message_id
+      const currentMessage = messages.find(msg => msg.message_id === messageId);
+      if (!currentMessage) {
+        console.error('Message not found with message_id:', messageId);
+        return;
+      }
+      
+      const currentReaction = currentMessage.userReaction;
       
       // If clicking the same reaction, remove it (set to null)
       const newReaction = currentReaction === reaction ? null : reaction;
       
       // Update local state immediately for better UX
       setMessages(prev => prev.map(message => 
-        message.id === messageId 
+        message.message_id === messageId 
           ? { ...message, userReaction: newReaction }
           : message
       ));
@@ -343,9 +348,11 @@ const Chatbot = () => {
       await saveReaction(sessionId, messageId, newReaction, chatbotId);
     } catch (error) {
       console.error('Error saving reaction:', error);
+      // Find the message again for error handling
+      const currentMessage = messages.find(msg => msg.message_id === messageId);
       // Revert local state on error
       setMessages(prev => prev.map(message => 
-        message.id === messageId 
+        message.message_id === messageId 
           ? { ...message, userReaction: currentMessage?.userReaction || null }
           : message
       ));
@@ -469,7 +476,7 @@ const Chatbot = () => {
         ) : (
           <>
             <span>💬</span>
-            <span>Need Help</span>
+            <span>Deepak AI assistant</span>
           </>
         )}
       </button>
@@ -521,7 +528,7 @@ const Chatbot = () => {
                   <div className="reaction-buttons">
                     <button
                       className={`reaction-btn like ${message.userReaction === true ? 'active liked' : ''}`}
-                      onClick={() => handleReaction(message.id, message.session_id, true)}
+                      onClick={() => handleReaction(message.message_id, message.session_id, true)}
                       title="Like this response"
                       disabled={message.id !== lastBotMessageId && message.userReaction !== null}
                     >
@@ -529,7 +536,7 @@ const Chatbot = () => {
                     </button>
                     <button
                       className={`reaction-btn dislike ${message.userReaction === false ? 'active disliked' : ''}`}
-                      onClick={() => handleReaction(message.id, message.session_id, false)}
+                      onClick={() => handleReaction(message.message_id, message.session_id, false)}
                       title="Dislike this response"
                       disabled={message.id !== lastBotMessageId && message.userReaction !== null}
                     >

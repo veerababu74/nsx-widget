@@ -130,7 +130,7 @@
         try {
             const requestPayload = {
                 session_id: sessionId,
-                message_id: messageId,
+                message_id: parseInt(messageId), // Ensure message_id is numeric
                 reaction: reaction
             };
 
@@ -529,7 +529,7 @@
                 // Update config with all API settings - remove all fallback defaults
                 this.config = {
                     ...this.config,
-                    welcomeMessage: settings.IntroMessage || "Hi! How can I help you today?",
+                    welcomeMessage: settings.IntroMessage,
                     clinicName: settings.ClinicName || "Our Clinic",
                     logoUrl: settings.LogoUrl || '',
                     privacyNoticeText: settings.PrivacyNoticeText || "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
@@ -1472,7 +1472,7 @@
             toggleBtn.className = 'nexus-chat-toggle';
             toggleBtn.innerHTML = this.isOpen ? 
                 '<span>✕</span><span>Close</span>' : 
-                '<span>💬</span><span>Need Help</span>';
+                '<span>💬</span><span>Deepak AI assistant</span>';
             toggleBtn.setAttribute('aria-label', 'Toggle chat');
             
             // Create chat container
@@ -1744,7 +1744,7 @@
             this.isOpen = !this.isOpen;
             this.toggleBtn.innerHTML = this.isOpen ? 
                 '<span>✕</span><span>Close</span>' : 
-                '<span>💬</span><span>Need Help</span>';
+                '<span>💬</span><span>Deepak AI assistant</span>';
             this.toggleBtn.classList.toggle('open', this.isOpen);
             this.chatContainer.classList.toggle('open', this.isOpen);
             
@@ -1829,7 +1829,7 @@
 
         closeChat() {
             this.isOpen = false;
-            this.toggleBtn.innerHTML = '<span>💬</span><span>Need Help</span>';
+            this.toggleBtn.innerHTML = '<span>💬</span><span>Deepak AI assistant</span>';
             this.toggleBtn.classList.remove('open');
             this.chatContainer.classList.remove('open');
         }
@@ -2012,7 +2012,7 @@
                     likeBtn.className = `nexus-reaction-btn nexus-like ${message.userReaction === true ? 'active liked' : ''}`;
                     likeBtn.innerHTML = '👍';
                     likeBtn.title = 'Like this response';
-                    likeBtn.onclick = () => this.handleReaction(message.id, message.session_id, true);
+                    likeBtn.onclick = () => this.handleReaction(message.message_id, message.session_id, true);
                     // Disable interaction for non-latest messages that already have reactions
                     likeBtn.disabled = !isLatestBotMessage && hasReaction;
                     
@@ -2020,7 +2020,7 @@
                     dislikeBtn.className = `nexus-reaction-btn nexus-dislike ${message.userReaction === false ? 'active disliked' : ''}`;
                     dislikeBtn.innerHTML = '👎';
                     dislikeBtn.title = 'Dislike this response';
-                    dislikeBtn.onclick = () => this.handleReaction(message.id, message.session_id, false);
+                    dislikeBtn.onclick = () => this.handleReaction(message.message_id, message.session_id, false);
                     // Disable interaction for non-latest messages that already have reactions
                     dislikeBtn.disabled = !isLatestBotMessage && hasReaction;
                     
@@ -2172,16 +2172,21 @@
 
         async handleReaction(messageId, sessionId, reaction) {
             try {
-                // Find the current reaction for this message
-                const currentMessage = this.messages.find(msg => msg.id === messageId);
-                const currentReaction = currentMessage?.userReaction;
+                // Find the current reaction for this message using message_id
+                const currentMessage = this.messages.find(msg => msg.message_id === messageId);
+                if (!currentMessage) {
+                    console.error('Message not found with message_id:', messageId);
+                    return;
+                }
+                
+                const currentReaction = currentMessage.userReaction;
                 
                 // If clicking the same reaction, remove it (set to null)
                 const newReaction = currentReaction === reaction ? null : reaction;
                 
                 // Update local state immediately for better UX
                 this.messages = this.messages.map(message => 
-                    message.id === messageId 
+                    message.message_id === messageId 
                         ? { ...message, userReaction: newReaction }
                         : message
                 );
@@ -2193,9 +2198,11 @@
                 await saveReaction(sessionId, messageId, newReaction, this.config.chatbotId);
             } catch (error) {
                 console.error('Error saving reaction:', error);
+                // Find the message again for error handling
+                const currentMessage = this.messages.find(msg => msg.message_id === messageId);
                 // Revert local state on error
                 this.messages = this.messages.map(message => 
-                    message.id === messageId 
+                    message.message_id === messageId 
                         ? { ...message, userReaction: currentMessage?.userReaction || null }
                         : message
                 );

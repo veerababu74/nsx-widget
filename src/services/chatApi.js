@@ -236,7 +236,7 @@ export const saveReaction = async (sessionId, messageId, reaction, chatbotId = n
     try {
         const requestPayload = {
             session_id: sessionId,
-            message_id: messageId,
+            message_id: parseInt(messageId), // Ensure message_id is numeric
             reaction: reaction
         };
 
