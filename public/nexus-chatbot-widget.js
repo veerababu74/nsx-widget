@@ -499,27 +499,29 @@
                 console.log('Widget doctor details loaded:', details);
                 
                 // Use IntroMessage from clinic settings as the welcome message
-                const welcomeMessage = this.config.welcomeMessage || `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
-                
-                this.messages = [
-                    {
-                        id: 1,
-                        text: welcomeMessage,
-                        sender: 'bot',
-                        timestamp: new Date()
-                    }
-                ];
+                if (this.config.welcomeMessage) {
+                    this.messages = [
+                        {
+                            id: 1,
+                            text: this.config.welcomeMessage,
+                            sender: 'bot',
+                            timestamp: new Date()
+                        }
+                    ];
+                }
             } catch (error) {
                 console.error('Failed to load doctor details for widget:', error);
-                // Set fallback welcome message from clinic settings (loaded from API)
-                this.messages = [
-                    {
-                        id: 1,
-                        text: this.config.welcomeMessage || "Hi! How can I help you today?",
-                        sender: 'bot',
-                        timestamp: new Date()
-                    }
-                ];
+                // Only set message if we have a dynamic welcome message from clinic settings
+                if (this.config.welcomeMessage) {
+                    this.messages = [
+                        {
+                            id: 1,
+                            text: this.config.welcomeMessage,
+                            sender: 'bot',
+                            timestamp: new Date()
+                        }
+                    ];
+                }
             }
         }
 
@@ -529,7 +531,7 @@
                 // Update config with all API settings - remove all fallback defaults
                 this.config = {
                     ...this.config,
-                    welcomeMessage: settings.IntroMessage,
+                    welcomeMessage: settings.IntroMessage || null,
                     clinicName: settings.ClinicName || "Our Clinic",
                     logoUrl: settings.LogoUrl || '',
                     privacyNoticeText: settings.PrivacyNoticeText || "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
@@ -551,7 +553,7 @@
                 // Set minimal fallback values if API fails
                 this.config = {
                     ...this.config,
-                    welcomeMessage: "Hi! How can I help you today?",
+                    welcomeMessage: null,
                     clinicName: "Our Clinic",
                     logoUrl: '',
                     privacyNoticeText: "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
@@ -1841,16 +1843,18 @@
                 }
                 
                 // Use IntroMessage from clinic settings as the welcome message
-                const welcomeMessage = this.config.welcomeMessage || `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
-                
-                this.messages = [
-                    {
-                        id: 1,
-                        text: welcomeMessage,
-                        sender: 'bot',
-                        timestamp: new Date()
-                    }
-                ];
+                if (this.config.welcomeMessage) {
+                    this.messages = [
+                        {
+                            id: 1,
+                            text: this.config.welcomeMessage,
+                            sender: 'bot',
+                            timestamp: new Date()
+                        }
+                    ];
+                } else {
+                    this.messages = [];
+                }
                 // Show starter questions again after clearing chat
                 this.showStarterQuestions = true;
                 this.renderMessages();

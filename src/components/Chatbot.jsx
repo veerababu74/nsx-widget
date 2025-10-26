@@ -88,27 +88,29 @@ const Chatbot = () => {
         console.log('Doctor details loaded:', details);
         
         // Use IntroMessage from clinic settings as the welcome message
-        const welcomeMessage = clinicSettings?.IntroMessage || `Hi, I'm Dr. ${details.DoctorFirstName || details.StaffFirstName || 'Doctor'} 😊\nHow can I assist you today?`;
-        
-        setMessages([
-          {
-            id: 1,
-            text: welcomeMessage,
-            sender: 'bot',
-            timestamp: new Date()
-          }
-        ]);
+        if (clinicSettings?.IntroMessage) {
+          setMessages([
+            {
+              id: 1,
+              text: clinicSettings.IntroMessage,
+              sender: 'bot',
+              timestamp: new Date()
+            }
+          ]);
+        }
       } catch (error) {
         console.error('Failed to load doctor details:', error);
-        // Set fallback welcome message using clinic settings IntroMessage
-        setMessages([
-          {
-            id: 1,
-            text: clinicSettings?.IntroMessage || "Hi! How can I help you today?",
-            sender: 'bot',
-            timestamp: new Date()
-          }
-        ]);
+        // Only set message if we have a dynamic welcome message from clinic settings
+        if (clinicSettings?.IntroMessage) {
+          setMessages([
+            {
+              id: 1,
+              text: clinicSettings.IntroMessage,
+              sender: 'bot',
+              timestamp: new Date()
+            }
+          ]);
+        }
       }
     };
     
@@ -144,7 +146,7 @@ const Chatbot = () => {
           LogoUrl: "",
           PrivacyNoticeUrl: "",
           PrivacyNoticeText: "I'm an AI assistant. Please consult a healthcare professional for medical advice.",
-          IntroMessage: "Hi! How can I help you today?",
+          IntroMessage: null,
           RetentionDays: "30",
           HandOffEmails: "",
           BookNowUrl: "",
@@ -299,18 +301,19 @@ const Chatbot = () => {
         await clearImprovedChatSession(userChatSessionId, chatbotId);
       }
       
-      // Create personalized welcome message
-      const doctorFirstName = doctorDetails?.DoctorFirstName || doctorDetails?.StaffFirstName || 'Doctor';
-      const welcomeMessage = `Hi, I'm Dr. ${doctorFirstName} 😊\nHow can I assist you today?`;
-      
-      setMessages([
-        {
-          id: 1,
-          text: welcomeMessage,
-          sender: 'bot',
-          timestamp: new Date()
-        }
-      ]);
+      // Use dynamic intro message from clinic settings only
+      if (clinicSettings?.IntroMessage) {
+        setMessages([
+          {
+            id: 1,
+            text: clinicSettings.IntroMessage,
+            sender: 'bot',
+            timestamp: new Date()
+          }
+        ]);
+      } else {
+        setMessages([]);
+      }
       // Reset reaction states and show starter questions again
       setLastBotMessageId(null);
       setShowStarterQuestions(true);
