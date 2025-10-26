@@ -469,7 +469,7 @@ const Chatbot = () => {
         ) : (
           <>
             <span>💬</span>
-            <span>Deepak AI assistant</span>
+            <span>AI Assistant</span>
           </>
         )}
       </button>

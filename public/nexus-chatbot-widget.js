@@ -1464,7 +1464,7 @@
             toggleBtn.className = 'nexus-chat-toggle';
             toggleBtn.innerHTML = this.isOpen ? 
                 '<span>✕</span><span>Close</span>' : 
-                '<span>💬</span><span>Deepak AI assistant</span>';
+                '<span>💬</span><span>AI Assistant</span>';
             toggleBtn.setAttribute('aria-label', 'Toggle chat');
             
             // Create chat container
@@ -1736,7 +1736,7 @@
             this.isOpen = !this.isOpen;
             this.toggleBtn.innerHTML = this.isOpen ? 
                 '<span>✕</span><span>Close</span>' : 
-                '<span>💬</span><span>Deepak AI assistant</span>';
+                '<span>💬</span><span>AI Assistant</span>';
             this.toggleBtn.classList.toggle('open', this.isOpen);
             this.chatContainer.classList.toggle('open', this.isOpen);
             
@@ -1821,7 +1821,7 @@
 
         closeChat() {
             this.isOpen = false;
-            this.toggleBtn.innerHTML = '<span>💬</span><span>Deepak AI assistant</span>';
+            this.toggleBtn.innerHTML = '<span>💬</span><span>AI Assistant</span>';
             this.toggleBtn.classList.remove('open');
             this.chatContainer.classList.remove('open');
         }
